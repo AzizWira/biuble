@@ -1,0 +1,2 @@
+<section class="panel"><h2>Catatan aktivitas</h2><p>Riwayat perubahan toko dan transaksi oleh tim.</p>
+@forelse($audits as $audit)<article class="activity-row"><div><strong>{{ \App\Support\StoreLabels::activity($audit->action) }}</strong><small>{{ \App\Support\StoreLabels::date($audit->created_at) }}</small></div><p>{{ $audit->actor_name ?? 'Sistem' }} · Referensi {{ \App\Support\StoreLabels::subject($audit->subject) }}</p></article>@empty<p>Belum ada aktivitas.</p>@endforelse</section>

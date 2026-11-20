@@ -404,12 +404,17 @@ if (countdowns.length) {
                 timer.closest('[data-promo-expires]')?.setAttribute('hidden', '');
                 continue;
             }
-            const days = Math.floor(seconds / 86400);
-            const h = String(Math.floor(seconds % 86400 / 3600)).padStart(2,'0');
+            const h = String(Math.floor(seconds / 3600)).padStart(2,'0');
             const m = String(Math.floor(seconds % 3600 / 60)).padStart(2,'0');
             const s = String(seconds % 60).padStart(2,'0');
-            timer.textContent = `Berakhir dalam ${days ? days + ' hari ' : ''}${h}:${m}:${s}`;
+            const clock = timer.querySelector('[data-countdown-clock]');
+            if (clock) clock.textContent = `${h}:${m}:${s}`;
+            else timer.textContent = `Sisa waktu ${h}:${m}:${s}`;
+            timer.setAttribute('aria-label', `Sisa waktu promo ${Number(h)} jam ${Number(m)} menit ${Number(s)} detik`);
         }
+        document.querySelectorAll('.promo-section').forEach(section => {
+            section.hidden = !section.querySelector('[data-promo-expires]:not([hidden])');
+        });
     };
     tick();
     setInterval(tick,1000);

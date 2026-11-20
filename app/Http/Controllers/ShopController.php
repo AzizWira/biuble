@@ -28,8 +28,14 @@ class ShopController extends Controller
             'products' => Product::with(['category', 'variants' => fn ($q) => $q->where('active', true)->withAvailableStock()])
                 ->where('active', true)->get(),
             'categories' => Category::all(),
-            'promotions' => \App\Models\Promotion::live()->with(['product.variants', 'variant'])->latest('starts_at')->get(),
+            'promotions' => \App\Models\Promotion::live()->with(['product.variants', 'variant'])->latest('starts_at')->latest('id')->limit(5)->get(),
         ]);
+    }
+
+    public function discounts()
+    {
+        return view('discounts', ['promotions' => \App\Models\Promotion::live()
+            ->with(['product.variants', 'variant'])->latest('starts_at')->latest('id')->paginate(12)]);
     }
 
     public function product(string $slug)

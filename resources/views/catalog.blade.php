@@ -4,18 +4,9 @@
 @section('content')
 <label class="search"><svg class="icon" aria-hidden="true"><use href="{{ asset('design/assets/ikon.svg') }}#cari"></use></svg><input id="search" type="search" placeholder="Cari aplikasi" aria-label="Cari aplikasi"></label>
 @if($promotions->isNotEmpty())
-<section class="promo-section"><div class="section-title"><h2>Diskon untukmu</h2><span>Selama promo berlangsung</span></div><div class="promo-grid">
+<section class="promo-section"><div class="section-title"><h2>Diskon untukmu</h2><a class="promo-see-all" href="{{ route('discounts') }}">Lihat semua diskon &rarr;</a></div><div class="promo-grid">
 @foreach($promotions as $promotion)
-@php
-    $promoVariant = $promotion->variant ?? $promotion->product->variants->where('active', true)->sortBy(fn ($v) => $v->unitPrice())->first();
-@endphp
-@if($promoVariant)
-<a class="promo-card" href="{{ route('product', $promotion->product->slug) }}" data-promo-expires="{{ $promotion->ends_at->toIso8601String() }}">
-<span class="promo-timer" data-countdown="{{ $promotion->ends_at->toIso8601String() }}" title="Berakhir {{ \App\Support\StoreLabels::date($promotion->ends_at) }} WIB"><small>Sisa waktu</small><strong data-countdown-clock>--:--:--</strong></span>
-<span class="badge">Diskon {{ $promotion->discount_percent }}%</span><h3>{{ $promotion->title }}</h3><p>{{ $promotion->product->name }}@if($promotion->variant) · {{ $promotion->variant->name }}@endif</p>
-<p class="promo-price">@unless($promotion->variant)<small>Mulai</small> @endunless<del>Rp{{ number_format($promoVariant->price,0,',','.') }}</del> <strong>Rp{{ number_format($promoVariant->unitPrice(),0,',','.') }}</strong></p>
-</a>
-@endif
+@include('partials.promo-card')
 @endforeach
 </div></section>
 @endif

@@ -129,4 +129,25 @@ class DemoScenarioSeederTest extends TestCase
         $this->withSession(['otp' => $challenge])->post(route('otp.verify'), ['code' => '123456'])->assertRedirect(route('catalog'));
         $this->getJson(route('updates'))->assertJsonPath('badges.cart', 0);
     }
+
+    public function test_home_limits_promotions_and_all_discounts_are_paginated(): void
+    {
+        Storage::fake('local');
+        $this->seed(DemoScenarioSeeder::class);
+        $promotion = Promotion::live()->firstOrFail();
+        for ($i = 1; $i <= 12; $i++) {
+            $copy = $promotion->replicate();
+            $copy->title = 'Additional demo discount '.$i;
+            $copy->save();
+        }
+        $home = $this->get(route('catalog'))->assertOk()->assertSee(route('discounts'));
+        $this->assertSame(5, substr_count($home->getContent(), 'data-promo-expires='));
+        $page = $this->get(route('discounts'))->assertOk();
+        $this->assertSame(12, substr_count($page->getContent(), 'data-promo-expires='));
+        $page = $this->get(route('discounts', ['page' => 2]))->assertOk();
+        $this->assertSame(3, substr_count($page->getContent(), 'data-promo-expires='));
+        Promotion::query()->update(['active' => false]);
+        $this->get(route('catalog'))->assertOk()->assertDontSee('data-promo-expires=', false);
+        $this->get(route('discounts'))->assertOk()->assertSee('Belum ada diskon aktif');
+    }
 }

@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [ShopController::class, 'catalog'])->name('catalog');
+Route::get('/diskon', [ShopController::class, 'discounts'])->name('discounts');
 Route::get('/produk/{slug}', [ShopController::class, 'product'])->name('product');
 
 Route::middleware('guest')->group(function () {

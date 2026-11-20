@@ -34,6 +34,7 @@ class StaffController extends Controller
         }
         $activeTab = $request->query('bagian', 'pesanan');
         abort_unless(is_string($activeTab) && array_key_exists($activeTab, $sections), 404);
+        $activityReadId = (int) $request->user()->activity_read_id;
         if ($activeTab === 'aktivitas') {
             $request->user()->forceFill(['activity_read_id' => DB::table('store_audits')->max('id') ?? 0])->save();
         }
@@ -42,12 +43,15 @@ class StaffController extends Controller
         }
 
         return view('staff', [
-            'sections' => $sections, 'activeTab' => $activeTab,
+            'sections' => $sections, 'activeTab' => $activeTab, 'activityReadId' => $activityReadId,
             'applicants' => User::where('role', 'reseller')->where('approval', 'pending')->where('account_status', '!=', 'deleted')->get(),
-            'orders' => Order::with(['items', 'user'])->latest()->limit(50)->get(),
+            'orders' => Order::with(['items', 'user'])
+                ->orderByDesc(OrderItem::selectRaw('1')->whereColumn('order_id', 'orders.id')->whereNotNull('orders.paid_at')->whereIn('status', ['waiting', 'review', 'refund_requested'])->limit(1))
+                ->latest()->paginate(50)->withQueryString(),
             'topups' => Topup::with('user')->where('method', 'manual')->where('status', 'pending')->get(),
             'withdrawals' => Withdrawal::with('user')->where('status', 'pending')->get(),
             'products' => Product::with('variants')->get(), 'categories' => Category::all(),
+            'unreadAnnouncementIds' => $activeTab === 'informasi' ? \App\Models\Announcement::live()->unreadFor($request->user()->id)->pluck('id')->all() : [],
             'announcements' => $activeTab === 'informasi' ? \App\Models\Announcement::when($request->user()->role !== 'owner', fn ($q) => $q->where('user_id', $request->user()->id))->latest()->paginate(15) : collect(),
             'promotions' => $activeTab === 'diskon' ? \App\Models\Promotion::with(['product', 'variant'])->latest()->paginate(15) : collect(),
             'audits' => DB::table('store_audits')->leftJoin('users as actors', 'actors.id', '=', 'store_audits.actor_id')->select('store_audits.*', 'actors.name as actor_name')->latest('store_audits.id')->limit(40)->get(),

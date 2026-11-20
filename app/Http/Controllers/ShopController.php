@@ -153,13 +153,15 @@ class ShopController extends Controller
         if (in_array($request->user()->role, ['owner', 'admin'], true)) {
             return redirect()->route('staff');
         }
+        $unreadOrderIds = DB::table('store_notifications')->where('user_id', $request->user()->id)->whereNotNull('order_id')->whereNull('read_at')->distinct()->pluck('order_id')->all();
         $orders = Order::where('user_id', $request->user()->id)
             ->with(['items' => fn ($items) => $items
                 ->select(['id', 'order_id', 'name', 'status', 'delivery', 'delivered_at', 'ends_at', 'login_proof_required'])
                 ->with('loginProof:id,order_item_id,status')->orderBy('id')])
+            ->when($unreadOrderIds, fn ($query) => $query->orderByRaw('CASE WHEN id IN ('.implode(',', array_map('intval', $unreadOrderIds)).') THEN 0 ELSE 1 END'))
             ->latest()->paginate(20);
 
-        return view('orders', compact('orders'));
+        return view('orders', compact('orders', 'unreadOrderIds'));
     }
 
     public function showOrder(Request $request, Order $order)

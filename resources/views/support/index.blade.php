@@ -16,7 +16,7 @@
     @forelse($cases as $case)
         <a class="stock-account-link status-row tone-{{ \App\Support\StoreLabels::tone($case->status) }}" href="{{ route('support.show', $case) }}">
             <span>
-                <strong>#{{ $case->id }} · {{ $case->subject }}</strong>
+                @if($staff && !in_array($case->status, ['resolved', 'rejected'], true))@include('partials.attention')@endif<strong>#{{ $case->id }} · {{ $case->subject }}</strong>
                 <small>{{ $staff ? $case->user->name.' · ' : '' }}{{ $case->order ? $case->order->reference.' · ' : '' }}{{ \App\Support\StoreLabels::date($case->updated_at) }}</small>
             </span>
             <span class="status-pill">{{ \App\Support\StoreLabels::supportStatus($case->status) }}</span>

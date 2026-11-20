@@ -74,6 +74,34 @@ class DemoScenarioSeederTest extends TestCase
         Mail::assertNothingSent();
     }
 
+    public function test_record_markers_match_navigation_counts_and_clear_after_reading(): void
+    {
+        Storage::fake('local');
+        $this->seed(DemoScenarioSeeder::class);
+        $owner = User::where('role', 'owner')->sole();
+        $badges = NavigationBadges::for($owner);
+        foreach (['pesanan', 'topup', 'pengajuan', 'penghapusan', 'penarikan'] as $section) {
+            $response = $this->actingAs($owner)->get(route('staff', ['bagian' => $section]))->assertOk();
+            $this->assertSame($badges[$section], substr_count($response->getContent(), 'data-attention="action"'), $section);
+        }
+        foreach (['garansi', 'masalah'] as $kind) {
+            $response = $this->get('/bantuan/'.$kind)->assertOk();
+            $this->assertSame($badges[$kind], substr_count($response->getContent(), 'data-attention="action"'), $kind);
+        }
+        $response = $this->get(route('staff', ['bagian' => 'aktivitas']))->assertOk();
+        $this->assertSame($badges['aktivitas'], substr_count($response->getContent(), 'data-attention="unread"'));
+        $this->get(route('staff', ['bagian' => 'aktivitas']))->assertOk()->assertDontSee('data-attention="unread"', false);
+        $buyer = User::where('email', 'natashasheiyla@gmail.com')->sole();
+        $expected = NavigationBadges::for($buyer)['orders'];
+        $this->assertGreaterThan(0, $expected);
+        $response = $this->actingAs($buyer)->get(route('orders'))->assertOk();
+        $this->assertSame($expected, substr_count($response->getContent(), 'data-attention="unread"'));
+        $orderId = DB::table('store_notifications')->where('user_id', $buyer->id)->whereNull('read_at')->whereNotNull('order_id')->value('order_id');
+        $this->get(route('orders.show', $orderId))->assertOk();
+        $response = $this->get(route('orders'))->assertOk();
+        $this->assertSame($expected - 1, substr_count($response->getContent(), 'data-attention="unread"'));
+    }
+
     public function test_seeded_cart_is_restored_once_after_reseller_login(): void
     {
         Storage::fake('local');

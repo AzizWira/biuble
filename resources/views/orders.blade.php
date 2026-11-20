@@ -10,7 +10,7 @@
     <article class="panel order-summary status-row tone-{{ \App\Support\StoreLabels::tone($progress['status']) }}">
         <a class="order-link" href="{{ route('orders.show', $order) }}">
             <div class="transaction-heading">
-                <strong>{{ $order->reference }}</strong>
+                <span>@if(in_array($order->id, $unreadOrderIds, true))@include('partials.attention', ['attentionLabel' => 'Pembaruan baru', 'attentionKind' => 'unread'])@endif<strong>{{ $order->reference }}</strong></span>
                 <span class="status-pill">{{ $progress['label'] }}</span>
             </div>
             <p>{{ \App\Support\StoreLabels::status($order->status) }} · Rp{{ number_format($order->total, 0, ',', '.') }} · {{ \App\Support\StoreLabels::date($order->created_at) }}</p>

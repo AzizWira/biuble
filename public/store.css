@@ -524,8 +524,8 @@ details[open] > summary { margin-bottom:16px; }
 .promo-timer > small { font-size:9px; font-weight:650; letter-spacing:.035em; }
 .promo-timer > strong { font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:16px; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:.04em; }
 @media(max-width:640px) {
- .promo-grid { grid-template-columns:1fr; gap:28px; }
- .promo-card { padding:21px 14px 12px; }
+ .promo-grid { grid-template-columns:none; grid-auto-flow:column; grid-auto-columns:85%; gap:15px; overflow-x:auto; overscroll-behavior-inline:contain; scroll-snap-type:x proximity; scroll-padding-inline:3px; padding:20px 3px 10px; scrollbar-width:thin; scrollbar-color:#9caeb4 transparent; }
+ .promo-card { padding:21px 14px 12px; scroll-snap-align:start; }
  .promo-card h3 { font-size:.94rem; }
  .promo-timer { right:11px; }
 }

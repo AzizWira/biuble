@@ -60,6 +60,7 @@ class GoogleLoginController extends Controller
         $request->session()->forget('otp');
         Auth::login($user);
         $request->session()->regenerate();
+        \App\Services\Store::restoreDemoCart($request, $user);
 
         if (in_array($user->role, ['owner', 'admin'], true)) {
             $request->session()->forget('url.intended');

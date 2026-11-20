@@ -52,7 +52,9 @@
     @if ($errors->any() && !session('stock_feedback_target'))
         <div class="notice form-error" role="alert">@foreach ($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>
     @endif
-    @if(auth()->check() && app()->isLocal() && \App\Services\Store::setting('local_audit_data') === '1')<p class="demo-notice">Mode audit lokal · Data berlabel DEMO dan saldo contoh adalah simulasi.</p>@endif
+    @if(\App\Services\Store::setting('demo_scenarios_data') === '1')
+        <p class="demo-notice">Mode demo · Saldo, akun layanan, gambar bukti, dan transaksi contoh adalah simulasi. Jangan melakukan transfer nyata.</p>
+    @elseif(auth()->check() && app()->isLocal() && \App\Services\Store::setting('local_audit_data') === '1')<p class="demo-notice">Mode audit lokal · Data berlabel DEMO dan saldo contoh adalah simulasi.</p>@endif
     @yield('content')
 
 </main>

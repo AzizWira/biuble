@@ -34,8 +34,8 @@ return new class extends Migration {
             $t->text('body');
             $t->boolean('published')->default(true);
             $t->unsignedInteger('revision')->default(1);
-            $t->timestamp('starts_at');
-            $t->timestamp('ends_at')->nullable();
+            $t->dateTime('starts_at');
+            $t->dateTime('ends_at')->nullable();
             $t->timestamps();
             $t->softDeletes();
         });
@@ -54,8 +54,8 @@ return new class extends Migration {
             $t->string('title', 150);
             $t->unsignedTinyInteger('discount_percent');
             $t->boolean('active')->default(true);
-            $t->timestamp('starts_at');
-            $t->timestamp('ends_at');
+            $t->dateTime('starts_at');
+            $t->dateTime('ends_at');
             $t->timestamps();
             $t->softDeletes();
         });

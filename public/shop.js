@@ -404,13 +404,32 @@ if (countdowns.length) {
                 timer.closest('[data-promo-expires]')?.setAttribute('hidden', '');
                 continue;
             }
-            const h = String(Math.floor(seconds / 3600)).padStart(2,'0');
+            const days = Math.floor(seconds / 86400);
+            const h = String(Math.floor(seconds % 86400 / 3600)).padStart(2,'0');
             const m = String(Math.floor(seconds % 3600 / 60)).padStart(2,'0');
             const s = String(seconds % 60).padStart(2,'0');
             const clock = timer.querySelector('[data-countdown-clock]');
-            if (clock) clock.textContent = `${h}:${m}:${s}`;
+            const digits = clock?.querySelectorAll('[data-digit]');
+            if (digits?.length === 6) {
+                const next = h + m + s;
+                digits.forEach((digit, index) => {
+                    const previous = digit.dataset.digit;
+                    if (previous === next[index]) return;
+                    digit.classList.remove('is-flipping');
+                    digit.querySelector('.flip-front span').textContent = previous;
+                    for (const half of digit.querySelectorAll('.flip-top span,.flip-bottom span,.flip-back span')) half.textContent = next[index];
+                    digit.dataset.digit = next[index];
+                    if (!document.hidden) {
+                        digit.classList.add('is-flipping');
+                        setTimeout(() => digit.classList.remove('is-flipping'), 480);
+                    }
+                });
+                const dayLabel = timer.querySelector('[data-countdown-days]');
+                dayLabel.hidden = !days;
+                dayLabel.textContent = `· ${days} hari`;
+            } else if (clock) clock.textContent = `${days ? days + ' hari ' : ''}${h}:${m}:${s}`;
             else timer.textContent = `Sisa waktu ${h}:${m}:${s}`;
-            timer.setAttribute('aria-label', `Sisa waktu promo ${Number(h)} jam ${Number(m)} menit ${Number(s)} detik`);
+            timer.setAttribute('aria-label', `Sisa waktu promo ${days} hari ${Number(h)} jam ${Number(m)} menit ${Number(s)} detik`);
         }
         document.querySelectorAll('.promo-section').forEach(section => {
             section.hidden = !section.querySelector('[data-promo-expires]:not([hidden])');

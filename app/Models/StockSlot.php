@@ -3,9 +3,13 @@ namespace App\Models;
 
 class StockSlot extends StoreRecord
 {
+    use \Illuminate\Database\Eloquent\SoftDeletes;
+
+    protected function casts(): array { return ['pin' => 'encrypted']; }
+
     public const RESTOCKABLE_ORDER_STATUSES = ['refunded', 'cancelled', 'refunded_gateway'];
 
-    public function account() { return $this->belongsTo(StockAccount::class, 'stock_account_id'); }
+    public function account() { return $this->belongsTo(StockAccount::class, 'stock_account_id')->withTrashed(); }
 
     public function latestOrderItem()
     {

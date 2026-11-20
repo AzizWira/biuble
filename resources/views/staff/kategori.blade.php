@@ -13,5 +13,5 @@
 <label class="field">Nama<input name="name" value="{{ $category->name }}" maxlength="80" required></label>
 <label class="field">Warna<input name="color" type="color" value="{{ $category->color }}"></label>
 <label class="field">Foto<input name="image" type="file" accept=".jpg,.jpeg,.png,.webp"></label>
-<button class="button">Simpan kategori</button></form></details>
+<button class="button">Simpan kategori</button></form>@include('partials.remove-data', ['removeKind' => 'category', 'removeId' => $category->id, 'removeLabel' => 'kategori'])</details>
 @endforeach</section>

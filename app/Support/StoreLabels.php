@@ -41,6 +41,7 @@ class StoreLabels
             'hold' => 'Dana ditahan untuk penarikan',
             'release' => 'Dana penarikan dikembalikan',
             'demo' => 'Saldo contoh untuk audit',
+            'latepayment' => 'Pembayaran tagihan lama dikembalikan',
             default => $entry->amount < 0 ? 'Saldo keluar' : 'Saldo masuk',
         };
     }
@@ -84,6 +85,9 @@ class StoreLabels
     public static function activity(string $action): string
     {
         return [
+            'order_payment_changed' => 'Metode pembayaran pesanan diubah', 'order_cancelled' => 'Pesanan belum dibayar dibatalkan',
+            'catalog_removed' => 'Data katalog atau stok dihapus', 'announcement_save' => 'Pengumuman disimpan',
+            'announcement_remove' => 'Pengumuman dihapus', 'promotion_save' => 'Diskon disimpan', 'promotion_remove' => 'Diskon dihapus',
             'account_status_changed'=>'Status akun diperbarui', 'account_role_changed'=>'Role akun diubah',
             'account_removed'=>'Akun dihapus', 'account_removal_requested'=>'Penghapusan akun diajukan',
             'account_removal_approved'=>'Penghapusan disetujui', 'account_removal_rejected'=>'Penghapusan ditolak',

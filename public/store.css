@@ -381,3 +381,53 @@ details[open] > summary { margin-bottom:16px; }
     .stock-stats { grid-template-columns:repeat(2,minmax(0,1fr)); }
     .confirm-dialog { padding:18px; }
 }
+
+/* Information, stock profiles, and navigation updates. */
+.nav-badge { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; min-width:22px; height:22px; padding:0 5px; border-radius:99px; background:#d85262; color:#fff; font:800 11px/1 'Nunito',sans-serif; }
+.nav-badge[hidden] { display:none; }
+.dock a,.staff-menu { position:relative; }
+.dock a>.nav-badge { position:absolute; top:5px; right:8px; }
+.staff-menu>.nav-badge { margin-left:auto; }
+.menu-informasi { background:#def3f3; }
+.menu-diskon { background:#ffedb7; }
+.announcement-option { border:1px solid var(--line); border-radius:16px; padding:15px; margin:0; min-width:0; background:#f1f9f6; }
+.announcement-fields { margin-top:16px; }
+.announcement-fields[hidden],[data-until][hidden] { display:none!important; }
+.information-card { background:var(--paper); border:1.5px solid var(--ink); border-radius:20px; padding:20px; min-width:0; overflow-wrap:anywhere; box-shadow:0 4px 0 #d5e8e9; }
+.information-card h3 { margin:0; font-size:1.1rem; }
+.information-card .section-title { align-items:flex-start; gap:10px; flex-wrap:wrap; margin:0; }
+.information-body { overflow-wrap:anywhere; line-height:1.65; }
+.information-body p:last-child { margin-bottom:0; }
+.information-body a { color:var(--action); text-decoration:underline; }
+.information-dialog { width:min(620px,calc(100% - 28px)); max-height:85dvh; padding:0; border:2px solid var(--ink); border-radius:24px; color:var(--ink); background:var(--cream); }
+.information-dialog::backdrop { background:#23345166; backdrop-filter:blur(3px); }
+.information-dialog-head,.information-dialog-footer { padding:18px 20px; background:var(--paper); }
+.information-dialog-head { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); }
+.information-dialog-head h2 { font-size:1.2rem; margin:0; }
+.dialog-close { border:1px solid var(--line); border-radius:12px; background:var(--mint); color:var(--ink); width:38px; height:38px; font-size:26px; cursor:pointer; }
+.information-dialog-body { padding:18px; max-height:55dvh; overflow-y:auto; }
+.information-dialog-footer { border-top:1px solid var(--line); }
+.profile-input-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px; padding:14px; border:1px solid var(--line); border-radius:14px; background:var(--paper); }
+.profile-input-row legend { font-weight:800; }
+.profile-inputs { max-height:480px; overflow:auto; }
+.remove-data-form { margin-top:12px; }
+.danger { color:#9a3546!important; border-color:#e1a5ad!important; }
+.payment-options { margin-top:20px; padding-top:20px; border-top:1px dashed var(--line); }
+.payment-options form { margin-top:16px; }
+.promo-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr)); gap:18px; }
+.promo-card { display:block; border:2px solid var(--ink); border-radius:22px; padding:20px; background:var(--butter); box-shadow:0 5px 0 var(--ink); text-decoration:none; color:var(--ink); overflow-wrap:anywhere; }
+.promo-card:nth-child(2n) { background:#e9ddf5; }
+.promo-card h3 { margin:10px 0 6px; font-size:1.2rem; }
+.promo-card p { margin:8px 0; font-size:.95rem; }
+.promo-card del,.variant-price del { color:var(--muted); font-size:.83rem; }
+.promo-timer { display:inline-block; padding:6px 10px; background:var(--paper); border-radius:10px; font-size:.85rem; font-weight:800; font-variant-numeric:tabular-nums; }
+@media(max-width:640px) {
+ .top .toolbar { flex-wrap:wrap; justify-content:flex-end; gap:8px; }
+ .information-open { font-size:.76rem!important; padding:8px 10px!important; }
+ .dock a>.nav-badge { right:calc(50% - 25px); top:0; min-width:18px; height:18px; font-size:10px; }
+ .information-card { padding:16px; }
+ .information-dialog-head,.information-dialog-footer { padding:14px; }
+ .information-dialog-footer .button { font-size:.8rem; padding:9px 12px; }
+ .profile-input-row { gap:9px; padding:11px; }
+ .promo-card { padding:16px; }
+}

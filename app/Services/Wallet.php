@@ -33,7 +33,7 @@ class Wallet
             if ($data['method'] !== 'manual') {
                 Payment::create([
                     'reference' => $topup->reference, 'kind' => 'topup', 'target_id' => $topup->id,
-                    'amount' => $topup->total, 'request_id' => (string) Str::uuid(),
+                    'amount' => $topup->total, 'method' => $data['method'], 'request_id' => (string) Str::uuid(),
                 ]);
             }
 

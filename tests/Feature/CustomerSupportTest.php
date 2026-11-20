@@ -30,6 +30,7 @@ class CustomerSupportTest extends TestCase
         $outsider = User::factory()->create();
         $variant = Variant::where('delivery', 'manual')->firstOrFail();
         $variant->update(['login_proof_required' => true, 'warranty_days' => 7]);
+        $variant->product->update(['login_proof_required' => true]);
         Store::entry($buyer->id, 'topup', $variant->price * 4, 'test:support-balance', 'Test balance');
         $checkout = app(Checkout::class);
         $order = $checkout->create($buyer, [['variant' => $variant->id, 'quantity' => 2]], 'wallet', (string) Str::uuid());
@@ -45,7 +46,7 @@ class CustomerSupportTest extends TestCase
             ->assertSee(route('orders.show', $order).'#item-'.$item->id);
         $this->post($proofUrl, ['evidence' => UploadedFile::fake()->image('besar.png')->size(2049)])
             ->assertSessionHasErrors('evidence');
-        $this->post($proofUrl, ['evidence' => UploadedFile::fake()->image('login.png', 2400, 1200)])
+        $this->post($proofUrl, ['device' => 'Samsung A55', 'location' => 'Bandung', 'evidence' => UploadedFile::fake()->image('login.png', 2400, 1200)])
             ->assertRedirect(route('orders.show', $order));
         $proof = $item->loginProof()->firstOrFail();
         $firstUpload = $proof->created_at;
@@ -58,7 +59,7 @@ class CustomerSupportTest extends TestCase
         $this->travel(25)->hours();
         $this->get(route('orders'))->assertOk()->assertSee('Sudah dikirim · menunggu pemeriksaan')
             ->assertSee('Belum diunggah · tenggat lewat')->assertDontSee('Unggah bukti untuk item #'.$lateItem->id);
-        $this->post(route('support.proof.upload', $lateItem), ['evidence' => UploadedFile::fake()->image('late.png')])
+        $this->post(route('support.proof.upload', $lateItem), ['device' => 'Samsung A55', 'location' => 'Bandung', 'evidence' => UploadedFile::fake()->image('late.png')])
             ->assertSessionHasErrors('store');
         $this->post(route('support.store', 'garansi'), [
             'item' => $lateItem->id, 'subject' => 'Gagal login', 'body' => 'Akses berhenti', 'evidence' => UploadedFile::fake()->image('error.png'),
@@ -81,7 +82,7 @@ class CustomerSupportTest extends TestCase
         $this->assertSame('correction', $proof->fresh()->status);
         $this->actingAs($buyer)->get(route('orders'))->assertOk()->assertSee('Perlu diperbaiki')
             ->assertSee('Perbaiki bukti untuk item #'.$item->id);
-        $this->actingAs($buyer)->post($proofUrl, ['evidence' => UploadedFile::fake()->image('correction.png')])->assertRedirect();
+        $this->actingAs($buyer)->post($proofUrl, ['device' => 'Samsung A55', 'location' => 'Bandung', 'evidence' => UploadedFile::fake()->image('correction.png')])->assertRedirect();
         $this->assertTrue($firstUpload->equalTo($proof->fresh()->created_at));
         $this->actingAs($admin)->post(route('support.proof.review', $item), ['status' => 'accepted'])->assertRedirect();
         $this->actingAs($owner)->post(route('support.review', $case), ['status' => 'resolved', 'body' => 'Akses dipulihkan'])->assertRedirect();

@@ -8,6 +8,7 @@
 @elseif($proof)
     <div class="stack">
         <p><strong>Bukti login {{ mb_strtolower($proofStatus[$proof->status]) }}.</strong> Dikirim {{ \App\Support\StoreLabels::date($proof->created_at) }}.</p>
+        @if($proof->device)<p><strong>Perangkat customer</strong> {{ $proof->device }}<br><strong>Lokasi customer</strong> {{ $proof->location }}</p>@endif
         @if($proof->review_note)<p>{{ $proof->review_note }}</p>@endif
         @foreach($proof->files->sortByDesc('id') as $file)
             <small>{{ \App\Support\StoreLabels::date($file->created_at) }}</small>
@@ -35,6 +36,10 @@
     <form class="stack" method="post" action="{{ route('support.proof.upload', $item) }}" enctype="multipart/form-data">
         @csrf
         <label class="field">Tangkapan layar login<input type="file" name="evidence" accept="image/jpeg,image/png,image/webp" required><small>JPG, PNG, atau WebP, maksimal 2 MB. Tutupi kata sandi, kode OTP, dan informasi pribadi.</small></label>
+        @if($item->login_details_required)
+        <label class="field">Merek dan model perangkat customer<input name="device" maxlength="150" value="{{ old('device', $proof?->device) }}" placeholder="Contoh Samsung Galaxy A55" required></label>
+        <label class="field">Lokasi customer<input name="location" maxlength="150" value="{{ old('location', $proof?->location) }}" placeholder="Contoh Kota Bandung, Jawa Barat" required><small>Cukup kota/kabupaten dan provinsi.</small></label>
+        @endif
         <button class="button secondary">{{ $proof ? 'Kirim perbaikan bukti login' : 'Unggah bukti login' }}</button>
     </form>
 @endif

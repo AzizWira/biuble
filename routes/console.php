@@ -62,7 +62,7 @@ Artisan::command('biuble:reconcile', function () {
         $this->info('DOKU belum diaktifkan.');
         return;
     }
-    \App\Models\Payment::where('status', 'pending')->whereNotNull('url')
+    \App\Models\Payment::whereIn('status', ['pending', 'superseded', 'cancelled'])->whereNotNull('url')->where('created_at', '>=', now()->subDays(14))
         ->where('updated_at', '<', now()->subMinutes(2))->orderBy('updated_at')->limit(30)->get()
         ->each(function ($payment) use ($doku) {
             try {

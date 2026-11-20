@@ -8,7 +8,7 @@ class OrderItem extends StoreRecord
         return ['access' => 'encrypted', 'delivered_at' => 'datetime', 'ends_at' => 'datetime'];
     }
     public function order() { return $this->belongsTo(Order::class); }
-    public function stockSlot() { return $this->belongsTo(StockSlot::class); }
+    public function stockSlot() { return $this->belongsTo(StockSlot::class)->withTrashed(); }
     public function loginProof() { return $this->hasOne(LoginProof::class); }
 
     public function loginProofDeadline()

@@ -157,8 +157,12 @@ class SupportController extends Controller
     public function uploadProof(Request $request, OrderItem $item)
     {
         abort_unless($request->user()->role === 'reseller' && $item->order->user_id === $request->user()->id, 403);
-        $request->validate(['evidence' => 'required|'.SupportImages::RULE]);
-        $this->withEvidence($request->file('evidence'), function (string $path) use ($request, $item) {
+        $details = $request->validate([
+            'evidence' => 'required|'.SupportImages::RULE,
+            'device' => ($item->login_details_required ? 'required' : 'nullable').'|string|max:150',
+            'location' => ($item->login_details_required ? 'required' : 'nullable').'|string|max:150',
+        ]);
+        $this->withEvidence($request->file('evidence'), function (string $path) use ($request, $item, $details) {
             $user = Store::lockUser($request->user()->id);
             abort_unless($user->role === 'reseller', 403);
             Store::writable($user);
@@ -174,6 +178,7 @@ class SupportController extends Controller
                 Store::check($receivedAt->lte($item->loginProofDeadline()), 'Batas 24 jam unggah bukti login sudah lewat.');
                 $proof = $item->loginProof()->create(['created_at' => $receivedAt]);
             }
+            $proof->update(['device' => $details['device'] ?? $proof->device, 'location' => $details['location'] ?? $proof->location]);
             $proof->files()->create(['path' => $path]);
         });
 

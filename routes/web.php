@@ -32,6 +32,7 @@ Route::post('/doku/notification', function (Request $request, Doku $doku) {
 Route::middleware(['auth', 'account-write', 'throttle:store-web'])->group(function () {
     Route::get('/status-akun', fn (Request $request) => response()->json([
         'version' => \App\Services\Store::updates($request->user()->id),
+        'badges' => \App\Services\NavigationBadges::for($request->user()),
     ]))->name('updates');
     Route::post('/keluar', [EmailLoginController::class, 'logout'])->name('logout');
     Route::get('/keamanan', [\App\Http\Controllers\SecurityController::class, 'show'])->name('security');
@@ -45,6 +46,15 @@ Route::middleware(['auth', 'account-write', 'throttle:store-web'])->group(functi
     Route::post('/checkout', [ShopController::class, 'checkout'])->block()->name('checkout');
     Route::get('/pesanan', [ShopController::class, 'orders'])->name('orders');
     Route::get('/pesanan/{order}', [ShopController::class, 'showOrder'])->name('orders.show');
+    Route::post('/pesanan/{order}/batalkan', [ShopController::class, 'cancelOrder'])->block()->name('orders.cancel');
+    Route::post('/pesanan/{order}/metode', [ShopController::class, 'changePayment'])->block()->middleware('throttle:money-actions')->name('orders.method');
+    Route::get('/pusat-informasi', [\App\Http\Controllers\InformationController::class, 'index'])->name('information');
+    Route::post('/pusat-informasi/dibaca', [\App\Http\Controllers\InformationController::class, 'read'])->name('information.read');
+    Route::post('/toko/informasi/{announcement?}', [\App\Http\Controllers\InformationController::class, 'save'])->name('staff.information.save');
+    Route::delete('/toko/informasi/{announcement}', [\App\Http\Controllers\InformationController::class, 'remove'])->name('staff.information.remove');
+    Route::post('/toko/diskon/{promotion?}', [\App\Http\Controllers\PromotionController::class, 'save'])->name('staff.promotion.save');
+    Route::delete('/toko/diskon/{promotion}', [\App\Http\Controllers\PromotionController::class, 'remove'])->name('staff.promotion.remove');
+    Route::delete('/toko/hapus/{kind}/{id}', [\App\Http\Controllers\CatalogRemovalController::class, 'remove'])->name('staff.catalog.remove');
     Route::post('/item/{item}/batal', [ShopController::class, 'cancel'])->name('item.cancel');
     Route::post('/item/{item}/bukti-login', [SupportController::class, 'uploadProof'])->middleware('throttle:8,1')->name('support.proof.upload');
     Route::post('/toko/item/{item}/bukti-login', [SupportController::class, 'reviewProof'])->name('support.proof.review');

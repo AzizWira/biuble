@@ -6,7 +6,7 @@
 <section class="panel stack" id="stok-detail">
     <div>
         <h2>{{ $product->name }} · {{ $typeLabels[$variant->type] }} · {{ StoreLabels::variantName($variant->name) }}</h2>
-        <p>Stok dihitung per profil. Satu akun dapat berisi beberapa profil.</p>
+        <p>{{ $product->stock_mode === 'profiles' ? 'Stok menggunakan profil. Setiap profil dapat memiliki PIN sendiri.' : 'Stok menggunakan slot penjualan tanpa profil dan PIN terpisah.' }}</p>
         @unless($variant->active)<p>Varian nonaktif di katalog.</p>@endunless
     </div>
     <dl class="stock-stats">
@@ -23,12 +23,14 @@
         @include('staff.stock-feedback', ['target' => 'stok-tambah'])
         <details class="stock-add" @if(old('variant_id') == $variant->id && $errors->any()) open @endif>
         <summary class="button"><span aria-hidden="true">+</span> Tambah akun dan slot</summary>
-        <form class="stack" method="post" action="{{ route('staff.stock') }}">
+        <form class="stack" method="post" action="{{ route('staff.stock') }}" data-stock-input data-stock-mode="{{ $product->stock_mode }}">
             @csrf
             <input type="hidden" name="variant_id" value="{{ $variant->id }}">
             <label class="field">Nama penanda akun (opsional)<input name="label" maxlength="100" value="{{ old('label') }}" placeholder="Contoh: Netflix Harian A"></label>
             <label class="field">Detail akses akun<textarea name="credentials" maxlength="8000" required placeholder="Email, kata sandi, dan petunjuk akses"></textarea></label>
-            <label class="field">Jumlah slot profil<input name="slots" type="number" min="1" max="100" value="{{ old('slots', 1) }}" required></label>
+            <label class="field">Jumlah {{ $product->stock_mode === 'profiles' ? 'profil' : 'slot penjualan' }}<input name="slots" type="number" min="1" max="100" value="{{ old('slots', 1) }}" required data-slot-count></label>
+            @if($product->stock_mode === 'profiles')<div class="profile-inputs stack" data-profile-inputs></div><p>Isi nama dan PIN masing-masing profil. PIN boleh dikosongkan jika profil tidak memakainya.</p>@endif
+            @include('partials.announcement-option')
             <button class="button">Simpan akun dan slot</button>
         </form>
         </details>
@@ -47,6 +49,7 @@
                 <button type="button" class="button secondary" data-stock-access="{{ route('staff.stock-access', $account) }}"
                     data-account-label="{{ $account->stockLabel() }}" aria-haspopup="dialog">Lihat detail akses</button>
             </div>
+            @include('partials.remove-data', ['removeKind' => 'account', 'removeId' => $account->id, 'removeLabel' => 'akun stok'])
             <div>
                 <h3>Status setiap slot</h3>
                 <p>Setelah menutup akses lama dan memeriksa profil, pilih “Jadikan siap dijual” untuk memasukkannya kembali ke stok.</p>
@@ -81,6 +84,7 @@
                     </div>
                     <div class="stock-slot-actions">
                         <span class="badge {{ $slot->state === 'available' ? 'ready' : '' }} {{ $ending ? 'stock-stat-ending' : '' }} {{ $canRestock ? 'stock-stat-inspection' : '' }}">{{ $status }}</span>
+                        @include('partials.remove-data', ['removeKind' => 'slot', 'removeId' => $slot->id, 'removeLabel' => 'slot'])
                         @if($canRestock)
                             <form method="post" action="{{ route('staff.recycle', $slot) }}"
                                 data-confirm="Sudah menutup akses pembeli sebelumnya dan memastikan profil ini siap diberikan ke pembeli berikutnya?"

@@ -28,7 +28,7 @@ class Checkout
             $total = 0;
             foreach ($cart as $row) {
                 $variant = Variant::with('product')->whereKey($row['variant'])->lockForUpdate()->firstOrFail();
-                Store::check($variant->active && $variant->product->active, 'Paket sudah tidak tersedia.');
+                Store::check($variant->active && $variant->product->active && ! $variant->product->trashed(), 'Paket sudah tidak tersedia.');
                 $designer = $variant->designer && ! empty($row['designer']);
                 $price = $variant->unitPrice($designer);
                 for ($i = 0; $i < $row['quantity']; $i++) {
@@ -48,7 +48,8 @@ class Checkout
                         'designer' => $designer, 'email' => $variant->delivery === 'invite' ? $row['email'] : null,
                         'duration_days' => $variant->duration_days,
                         'warranty_days' => $variant->warranty_days,
-                        'login_proof_required' => (bool) $variant->login_proof_required,
+                        'login_proof_required' => (bool) $variant->product->login_proof_required,
+                        'login_details_required' => (bool) $variant->product->login_proof_required,
                     ];
                     $total += $price;
                 }
@@ -66,7 +67,7 @@ class Checkout
             } else {
                 Payment::create([
                     'reference' => $order->reference, 'kind' => 'order', 'target_id' => $order->id,
-                    'amount' => $order->total, 'request_id' => (string) Str::uuid(),
+                    'amount' => $order->total, 'method' => $method, 'request_id' => (string) Str::uuid(),
                 ]);
             }
 
@@ -89,7 +90,7 @@ class Checkout
                     continue;
                 }
                 $slot->update(['state' => 'used']);
-                $this->deliver($item, $slot->account->credentials."\nProfil: ".$slot->label);
+                $this->deliver($item, $slot->account->credentials."\nSlot / profil: ".$slot->label.($slot->pin ? "\nPIN profil: ".$slot->pin : ''));
             } else {
                 $item->update(['status' => 'waiting']);
             }

@@ -19,6 +19,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Illuminate\Support\Facades\View::composer(['layout', 'staff', 'support.links'], function ($view) {
+            $user = auth()->user();
+            $view->with('navBadges', $user ? \App\Services\NavigationBadges::for($user) : []);
+            $view->with('unreadInformation', $user && $user->role === 'reseller'
+                ? \App\Models\Announcement::live()->unreadFor($user->id)->latest('starts_at')->limit(10)->get() : collect());
+        });
         \Illuminate\Pagination\Paginator::defaultView('pagination.biuble');
         \Illuminate\Support\Facades\RateLimiter::for('store-web', fn ($request) =>
             \Illuminate\Cache\RateLimiting\Limit::perMinute(120)->by($request->user()?->id ?? $request->ip()));

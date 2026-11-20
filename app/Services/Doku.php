@@ -41,9 +41,22 @@ class Doku
 
     public function link(Payment $payment): string
     {
+        return DB::transaction(function () use ($payment) {
+            $target = $payment->kind === 'order' ? Order::findOrFail($payment->target_id) : Topup::findOrFail($payment->target_id);
+            Store::lockUser($target->user_id);
+            $target = $target->newQuery()->whereKey($target->id)->lockForUpdate()->firstOrFail();
+            $payment = Payment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
+            Store::check($payment->status === 'pending' && $target->status === 'pending', 'Tagihan sudah diganti atau dibatalkan. Buka detail pesanan untuk melihat metode terbaru.');
+            Store::check(! ($target instanceof Order) || $target->expires_at->isFuture(), 'Batas pembayaran pesanan sudah berakhir.');
+            return $this->createLink($payment, $target);
+        }, 3);
+    }
+
+    private function createLink(Payment $payment, Order|Topup $target): string
+    {
         Store::check($this->available(), 'Pembayaran DOKU sedang belum tersedia.');
-        $target = $payment->kind === 'order' ? Order::findOrFail($payment->target_id) : Topup::findOrFail($payment->target_id);
-        Store::check(config('doku.production') || $target->method !== 'QRIS',
+        $method = $payment->method ?? $target->method;
+        Store::check(config('doku.production') || $method !== 'QRIS',
             'QRIS tidak tersedia di DOKU Sandbox. Gunakan kanal sandbox lain yang aktif untuk transaksi baru.');
         if ($payment->url) {
             return $payment->url;
@@ -52,7 +65,7 @@ class Doku
         $body = json_encode([
             'order' => ['amount' => $payment->amount, 'invoice_number' => $payment->reference,
                 'callback_url' => route('payment.return', $payment->reference), 'currency' => 'IDR'],
-            'payment' => ['payment_due_date' => 60, 'payment_method_types' => [$target->method]],
+            'payment' => ['payment_due_date' => $target instanceof Order ? max(1, (int) ceil(now()->diffInSeconds($target->expires_at) / 60)) : 60, 'payment_method_types' => [$method]],
         ], JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
         $timestamp = now()->utc()->format('Y-m-d\TH:i:s\Z');
         $path = '/checkout/v1/payment';
@@ -119,7 +132,13 @@ class Doku
             }
             if ($payment->kind === 'order') {
                 $order = Order::whereKey($payment->target_id)->lockForUpdate()->firstOrFail();
-                app(Checkout::class)->complete($order);
+                if ($payment->status !== 'pending' || $order->paid_at || $order->status !== 'pending' || $order->expires_at->isPast()) {
+                    Store::entry($order->user_id, 'cancellation', $payment->amount, 'latepayment:'.$payment->id,
+                        'Pembayaran tagihan lama '.$payment->reference.' dikembalikan ke saldo');
+                    Store::notify($order->user_id, 'Pembayaran tagihan lama diterima. Dana Rp'.number_format($payment->amount, 0, ',', '.').' masuk ke saldo pembatalan tanpa biaya penarikan.', $order->id);
+                } else {
+                    app(Checkout::class)->complete($order);
+                }
             } else {
                 $topup = Topup::whereKey($payment->target_id)->lockForUpdate()->firstOrFail();
                 if ($topup->status !== 'paid') {

@@ -131,9 +131,9 @@ if (stockAccessDialog) {
                     headers: {Accept: 'application/json'}, cache: 'no-store', signal: request.signal,
                 });
                 if (!response.ok) throw new Error('Detail akses tidak tersedia');
-                const {access} = await response.json();
+                const {access, profiles = []} = await response.json();
                 if (!stockAccessDialog.open || activeRequest !== request) return;
-                content.textContent = access ?? '';
+                content.textContent = (access ?? '') + (profiles.length ? '\n\n' + profiles.map(profile => profile.label + (profile.pin ? ' | PIN: ' + profile.pin : '')).join('\n') : '');
                 content.hidden = !access;
                 status.hidden = Boolean(access);
                 status.textContent = access ? '' : 'Belum ada detail akses untuk akun ini.';
@@ -158,6 +158,7 @@ if (updateSurface) {
             const response = await fetch(updateSurface.dataset.updatesUrl, { headers: {Accept:'application/json'} });
             if (!response.ok) return;
             const data = await response.json();
+            if (data.badges) updateBadges(data.badges);
             if (data.version !== updateSurface.dataset.updatesVersion) {
                 if (editing) {
                     document.querySelector('#updates-notice').hidden = false;
@@ -265,4 +266,145 @@ if (document.body.dataset.accountReadonly === 'true') {
         form.classList.add('readonly-form');
         form.addEventListener('submit', event => event.preventDefault());
     }
+}
+
+for (const container of document.querySelectorAll('[data-announcement-option]')) {
+    const checkbox = container.querySelector('[data-announcement-toggle]');
+    const fields = container.querySelector('[data-announcement-fields]');
+    const update = () => {
+        fields.hidden = !checkbox.checked;
+        for (const control of fields.querySelectorAll('input,textarea,select')) control.disabled = !checkbox.checked;
+        fields.querySelector('[name=announcement_title]').required = checkbox.checked;
+        fields.querySelector('[name=announcement_body]').required = checkbox.checked;
+    };
+    checkbox.addEventListener('change', update);
+    update();
+}
+for (const container of document.querySelectorAll('[data-duration-form],[data-announcement-fields]')) {
+    const select = container.querySelector('[data-until-select]');
+    const update = () => {
+        for (const field of container.querySelectorAll('[data-until]')) {
+            if (field.closest('[data-duration-form],[data-announcement-fields]') !== container) continue;
+            field.hidden = field.dataset.until !== select.value;
+            for (const input of field.querySelectorAll('input')) {
+                input.disabled = field.hidden || Boolean(container.closest('[data-announcement-option]')?.querySelector('[data-announcement-toggle]:not(:checked)'));
+                input.required = !input.disabled;
+            }
+        }
+    };
+    select.addEventListener('change', update);
+    container.closest('[data-announcement-option]')?.querySelector('[data-announcement-toggle]').addEventListener('change', update);
+    update();
+}
+for (const form of document.querySelectorAll('[data-stock-input][data-stock-mode=profiles]')) {
+    const count = form.querySelector('[data-slot-count]');
+    const rows = form.querySelector('[data-profile-inputs]');
+    const update = () => {
+        const length = Math.min(100, Math.max(1, Number(count.value) || 1));
+        while (rows.children.length > length) rows.lastElementChild.remove();
+        while (rows.children.length < length) {
+            const index = rows.children.length;
+            const fieldset = document.createElement('fieldset');
+            fieldset.className = 'profile-input-row';
+            const legend = document.createElement('legend');
+            legend.textContent = `Profil ${index + 1}`;
+            fieldset.append(legend);
+            for (const [key, text] of [['label', 'Nama profil'], ['pin', 'PIN profil (opsional)']]) {
+                const label = document.createElement('label');
+                label.className = 'field';
+                label.textContent = text;
+                const input = document.createElement('input');
+                input.name = `profiles[${index}][${key}]`;
+                input.maxLength = key === 'pin' ? 30 : 100;
+                input.required = key === 'label';
+                input.autocomplete = 'off';
+                if (key === 'label') input.value = `Profil ${index + 1}`;
+                label.append(input);
+                fieldset.append(label);
+            }
+            rows.append(fieldset);
+        }
+    };
+    count.addEventListener('input', update);
+    update();
+}
+for (const form of document.querySelectorAll('[data-promotion-form]')) {
+    const product = form.querySelector('[data-promotion-product]');
+    const variant = form.querySelector('[data-promotion-variant]');
+    const update = () => {
+        for (const option of variant.options) {
+            option.hidden = Boolean(option.dataset.productId && option.dataset.productId !== product.value);
+            option.disabled = option.hidden;
+        }
+        if (variant.selectedOptions[0]?.disabled) variant.value = '';
+    };
+    product.addEventListener('change', update);
+    update();
+}
+function updateBadges(counts) {
+    for (const badge of document.querySelectorAll('[data-badge]')) {
+        const count = counts[badge.dataset.badge] || 0;
+        badge.hidden = count === 0;
+        badge.textContent = count > 99 ? '99+' : String(count);
+    }
+}
+const badgeSurface = document.querySelector('[data-badges-url]');
+if (badgeSurface?.dataset.badgesUrl) {
+    setInterval(async () => {
+        if (document.hidden || updateSurface) return;
+        try {
+            const response = await fetch(badgeSurface.dataset.badgesUrl, {headers:{Accept:'application/json'}, cache:'no-store'});
+            if (response.ok) updateBadges((await response.json()).badges);
+        } catch { /* Counts refresh on the next successful poll. */ }
+    }, 15000);
+}
+const informationDialog = document.querySelector('[data-information-dialog]');
+if (informationDialog) {
+    document.querySelector('[data-information-open]')?.addEventListener('click', () => informationDialog.showModal());
+    informationDialog.querySelector('[data-information-close]').addEventListener('click', () => informationDialog.close());
+    const signature = informationDialog.dataset.signature;
+    try {
+        if (signature && !location.pathname.startsWith('/pusat-informasi') && sessionStorage.getItem('biuble-information') !== signature) {
+            informationDialog.showModal();
+            sessionStorage.setItem('biuble-information', signature);
+        }
+    } catch { /* The header button remains available if session storage is disabled. */ }
+}
+for (const form of document.querySelectorAll('[data-information-read],[data-information-read-all]')) {
+    form.addEventListener('submit', async event => {
+        event.preventDefault();
+        const button = form.querySelector('button');
+        button.disabled = true;
+        try {
+            const response = await fetch(form.action, {method:'POST', body:new FormData(form), headers:{Accept:'application/json'}, cache:'no-store'});
+            if (!response.ok) throw new Error();
+            button.textContent = 'Sudah dibaca';
+            const counts = await fetch(badgeSurface.dataset.badgesUrl, {headers:{Accept:'application/json'}, cache:'no-store'});
+            if (counts.ok) updateBadges((await counts.json()).badges);
+            if (form.hasAttribute('data-information-read-all')) informationDialog?.close();
+        } catch {
+            button.disabled = false;
+            button.textContent = 'Coba tandai dibaca lagi';
+        }
+    });
+}
+const countdowns = [...document.querySelectorAll('[data-countdown]')];
+if (countdowns.length) {
+    const tick = () => {
+        for (const timer of countdowns) {
+            const seconds = Math.max(0, Math.floor((Date.parse(timer.dataset.countdown) - Date.now()) / 1000));
+            if (!seconds) {
+                timer.textContent = 'Promo berakhir';
+                timer.closest('[data-promo-expires]')?.setAttribute('hidden', '');
+                continue;
+            }
+            const days = Math.floor(seconds / 86400);
+            const h = String(Math.floor(seconds % 86400 / 3600)).padStart(2,'0');
+            const m = String(Math.floor(seconds % 3600 / 60)).padStart(2,'0');
+            const s = String(seconds % 60).padStart(2,'0');
+            timer.textContent = `Berakhir dalam ${days ? days + ' hari ' : ''}${h}:${m}:${s}`;
+        }
+    };
+    tick();
+    setInterval(tick,1000);
 }

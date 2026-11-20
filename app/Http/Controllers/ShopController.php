@@ -28,6 +28,7 @@ class ShopController extends Controller
             'products' => Product::with(['category', 'variants' => fn ($q) => $q->where('active', true)->withAvailableStock()])
                 ->where('active', true)->get(),
             'categories' => Category::all(),
+            'promotions' => \App\Models\Promotion::live()->with(['product.variants', 'variant'])->latest('starts_at')->get(),
         ]);
     }
 
@@ -164,10 +165,29 @@ class ShopController extends Controller
     public function showOrder(Request $request, Order $order)
     {
         abort_unless($order->user_id === $request->user()->id || in_array($request->user()->role, ['owner', 'admin']), 403);
-        $order->load('items.loginProof.files')->loadExists(['payment as pending_doku_link' => fn ($query) => $query
+        if ($order->user_id === $request->user()->id && ! $request->boolean('invoice')) {
+            DB::table('store_notifications')->where('user_id', $request->user()->id)->where('order_id', $order->id)->whereNull('read_at')->update(['read_at' => now()]);
+        }
+        $order->load(['items.loginProof.files', 'payment'])->loadExists(['payment as pending_doku_link' => fn ($query) => $query
             ->where('status', 'pending')->whereNotNull('url')]);
 
-        return view('order', ['order' => $order, 'invoice' => $request->boolean('invoice')]);
+        return view('order', ['order' => $order, 'invoice' => $request->boolean('invoice'), 'channels' => $this->channels(), 'paymentFees' => collect($this->channels())->mapWithKeys(fn ($label, $key) => [$key => Store::fee($order->subtotal, 'checkout', $key)])]);
+    }
+
+    public function cancelOrder(Request $request, Order $order, \App\Services\OrderPayment $payments)
+    {
+        $payments->cancel($request->user(), $order);
+        return back()->with('status', 'Pesanan dibatalkan dan reservasi stok dilepas.');
+    }
+
+    public function changePayment(Request $request, Order $order, \App\Services\OrderPayment $payments)
+    {
+        $data = $request->validate([
+            'method' => ['required', Rule::in(array_merge(['wallet'], array_keys($this->channels())))],
+            'expected_total' => 'required|integer|min:1', 'expected_payment' => 'required|integer|min:0',
+        ]);
+        $payments->change($request->user(), $order, $data['method'], (int) $data['expected_total'], (int) $data['expected_payment']);
+        return back()->with('status', 'Metode pembayaran diperbarui. Gunakan tagihan terbaru yang tampil di pesanan ini.');
     }
 
     public function cancel(Request $request, OrderItem $item, Checkout $checkout)

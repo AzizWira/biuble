@@ -27,13 +27,16 @@ class StaffController extends Controller
     public function dashboard(Request $request)
     {
         Store::staff();
-        $sections = ['pesanan'=>'Pesanan', 'topup'=>'Top-up', 'stok'=>'Stok', 'katalog'=>'Produk & varian', 'pengajuan'=>'Reseller'];
+        $sections = ['pesanan'=>'Pesanan', 'topup'=>'Top-up', 'stok'=>'Stok', 'katalog'=>'Produk & varian', 'pengajuan'=>'Reseller', 'informasi'=>'Pusat informasi'];
         if ($request->user()->role === 'owner') {
             $sections += ['penghapusan'=>'Pengajuan hapus akun', 'penarikan'=>'Penarikan', 'kategori'=>'Kategori',
-                'admin'=>'Tim admin', 'pengaturan'=>'Pengaturan', 'aktivitas'=>'Aktivitas'];
+                'diskon'=>'Diskon', 'admin'=>'Tim admin', 'pengaturan'=>'Pengaturan', 'aktivitas'=>'Aktivitas'];
         }
         $activeTab = $request->query('bagian', 'pesanan');
         abort_unless(is_string($activeTab) && array_key_exists($activeTab, $sections), 404);
+        if ($activeTab === 'aktivitas') {
+            $request->user()->forceFill(['activity_read_id' => DB::table('store_audits')->max('id') ?? 0])->save();
+        }
         if ($activeTab === 'stok') {
             return view('staff', ['sections' => $sections, 'activeTab' => $activeTab] + $this->stockOverview($request));
         }
@@ -45,6 +48,8 @@ class StaffController extends Controller
             'topups' => Topup::with('user')->where('method', 'manual')->where('status', 'pending')->get(),
             'withdrawals' => Withdrawal::with('user')->where('status', 'pending')->get(),
             'products' => Product::with('variants')->get(), 'categories' => Category::all(),
+            'announcements' => $activeTab === 'informasi' ? \App\Models\Announcement::when($request->user()->role !== 'owner', fn ($q) => $q->where('user_id', $request->user()->id))->latest()->paginate(15) : collect(),
+            'promotions' => $activeTab === 'diskon' ? \App\Models\Promotion::with(['product', 'variant'])->latest()->paginate(15) : collect(),
             'audits' => DB::table('store_audits')->leftJoin('users as actors', 'actors.id', '=', 'store_audits.actor_id')->select('store_audits.*', 'actors.name as actor_name')->latest('store_audits.id')->limit(40)->get(),
             'admins' => User::where('role', 'admin')->where('account_status', '!=', 'deleted')->orderBy('name')->get(),
             'resellers' => $activeTab === 'pengajuan' ? User::where('role','reseller')->where('account_status', '!=', 'deleted')->orderBy('name')->paginate(20, ['*'], 'reseller_page')->withQueryString() : collect(),
@@ -250,12 +255,14 @@ class StaffController extends Controller
     {
         Store::owner();
         $data = $request->validate([
-            'name' => 'required|string|max:100', 'category_id' => 'required|exists:categories,id',
+            'name' => 'required|string|max:100', 'category_id' => ['required', Rule::exists('categories', 'id')->whereNull('deleted_at')],
             'description' => 'required|string|max:3000', 'color' => 'required|regex:/^#[0-9a-fA-F]{6}$/',
             'image' => 'nullable|image|mimes:jpeg,png,webp|max:3072', 'active' => 'nullable|boolean',
+            'stock_mode' => 'required|in:profiles,slots', 'login_proof_required' => 'required|boolean',
         ]);
+        $announcement = \App\Services\Announcements::validate($request);
         $product ??= new Product();
-        $product->fill($request->only(['name', 'category_id', 'description', 'color']));
+        $product->fill($request->only(['name', 'category_id', 'description', 'color', 'stock_mode', 'login_proof_required']));
         $product->active = $request->boolean('active');
         if (! $product->exists) {
             $product->slug = Str::slug($data['name']).'-'.Str::lower(Str::random(5));
@@ -263,8 +270,11 @@ class StaffController extends Controller
         if ($request->hasFile('image')) {
             $product->image = $request->file('image')->store('catalog', 'public');
         }
-        $product->save();
-        Store::audit('product_save', (string) $product->id);
+        DB::transaction(function () use ($request, $product, $announcement) {
+            $product->save();
+            \App\Services\Announcements::publish($request, $announcement);
+            Store::audit('product_save', (string) $product->id);
+        });
         return back()->with('status', 'Produk disimpan.');
     }
 
@@ -275,29 +285,31 @@ class StaffController extends Controller
             Store::owner();
         }
         $data = $request->validate([
-            'product_id' => 'required|exists:products,id', 'name' => 'required|string|max:180',
+            'product_id' => ['required', Rule::exists('products', 'id')->whereNull('deleted_at')], 'name' => 'required|string|max:180',
             'color' => 'nullable|regex:/^#[0-9a-fA-F]{6}$/',
             'type' => 'required|in:sharing,private', 'delivery' => 'required|in:stock,manual,invite',
             'price' => 'required|integer|min:1|max:1000000000',
             'duration_days' => 'nullable|integer|min:1|max:3660',
             'warranty_days' => 'nullable|integer|min:1|max:3660',
-            'login_proof_required' => 'nullable|boolean',
             'designer' => 'nullable|boolean', 'active' => 'nullable|boolean',
             'discount_percent' => 'required|integer|min:0|max:99',
         ]);
-        if ($variant && $request->user()->role === 'admin') {
-            $variant->update(['price' => $data['price']]);
-        } else {
-            $product = Product::findOrFail($data['product_id']);
-            $data['designer'] = $request->boolean('designer') && $product->slug === 'canva'
-                && Str::startsWith($data['name'], 'Member');
-            $data['active'] = $request->boolean('active');
-            if ($request->has('login_proof_required')) {
-                $data['login_proof_required'] = $request->boolean('login_proof_required');
+        $announcement = \App\Services\Announcements::validate($request);
+        DB::transaction(function () use ($request, $variant, $data, $announcement) {
+            if ($variant && $request->user()->role === 'admin') {
+                $variant->update(['price' => $data['price']]);
+            } else {
+                $product = Product::findOrFail($data['product_id']);
+                $data['designer'] = $request->boolean('designer') && $product->slug === 'canva'
+                    && Str::startsWith($data['name'], 'Member');
+                $data['active'] = $request->boolean('active');
+                $data['login_proof_required'] = $product->login_proof_required;
+                $record = $variant ?? new Variant();
+                $record->fill($data)->save();
             }
-            ($variant ?? new Variant())->fill($data)->save();
-        }
-        Store::audit('variant_save', $variant?->id ? (string) $variant->id : 'new');
+            \App\Services\Announcements::publish($request, $announcement);
+            Store::audit('variant_save', (string) ($variant?->id ?? $record->id));
+        });
         return back()->with('status', 'Varian disimpan.');
     }
 
@@ -306,24 +318,33 @@ class StaffController extends Controller
         Store::staff();
         $back = back()->withFragment('stok-tambah');
         $validator = validator($request->all(), [
-            'variant_id' => 'required|exists:variants,id', 'credentials' => 'required|string|max:8000',
+            'variant_id' => ['required', Rule::exists('variants', 'id')->whereNull('deleted_at')], 'credentials' => 'required|string|max:8000',
             'label' => 'nullable|string|max:100',
             'slots' => 'required|integer|min:1|max:100',
+            'profiles' => 'nullable|array|max:100',
+            'profiles.*.label' => 'required|string|max:100|distinct',
+            'profiles.*.pin' => 'nullable|string|max:30',
         ]);
         if ($validator->fails() && ! $request->expectsJson()) {
             return $back->withErrors($validator)
                 ->withInput($request->only('variant_id', 'label', 'slots'))->with('stock_feedback_target', 'stok-tambah');
         }
         $data = $validator->validate();
-        DB::transaction(function () use ($data) {
+        $announcement = \App\Services\Announcements::validate($request);
+        DB::transaction(function () use ($request, $data, $announcement) {
             $variant = Variant::whereKey($data['variant_id'])->lockForUpdate()->firstOrFail();
             Store::check($variant->delivery === 'stock', 'Paket ini memakai penyerahan manual atau undangan.');
+            Store::check(! $variant->product->trashed(), 'Aplikasi sudah dihapus.');
+            $profileMode = $variant->product->stock_mode === 'profiles';
+            Store::check(! $profileMode || count($data['profiles'] ?? []) === (int) $data['slots'], 'Isi nama dan PIN untuk setiap profil sesuai jumlah slot.');
             $account = StockAccount::create([
                 'variant_id' => $variant->id, 'credentials' => $data['credentials'], 'label' => $data['label'] ?? null,
             ]);
             for ($i = 1; $i <= $data['slots']; $i++) {
-                $account->slots()->create(['label' => 'Profil '.$i]);
+                $profile = $profileMode ? $data['profiles'][$i - 1] : ['label' => 'Slot '.$i, 'pin' => null];
+                $account->slots()->create(['label' => $profile['label'], 'pin' => $profile['pin'] ?? null]);
             }
+            \App\Services\Announcements::publish($request, $announcement);
             Store::audit('stock_create', (string) $account->id);
         });
         return $back->with('status', 'Akun dan slot stok ditambahkan.')->with('stock_feedback_target', 'stok-tambah');
@@ -335,6 +356,7 @@ class StaffController extends Controller
 
         return response()->json([
             'access' => $account->credentials,
+            'profiles' => $account->slots->map(fn ($slot) => ['label' => $slot->label, 'pin' => $slot->pin]),
         ]);
     }
 

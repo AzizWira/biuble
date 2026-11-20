@@ -9,6 +9,6 @@ class Order extends StoreRecord
     }
     public function items() { return $this->hasMany(OrderItem::class); }
     public function user() { return $this->belongsTo(User::class); }
-    public function payment() { return $this->hasOne(Payment::class, 'target_id')->where('kind', 'order'); }
+    public function payment() { return $this->hasOne(Payment::class, 'target_id')->ofMany(['id' => 'max'], fn ($q) => $q->where('kind', 'order')); }
 }
 

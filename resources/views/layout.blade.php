@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="{{ asset('store.css').'?v='.filemtime(public_path('store.css')) }}">
 </head>
 <body class="@yield('body')" @if(auth()->check() && auth()->user()->isReadOnly()) data-account-readonly="true" @endif>
-<main class="store" @if(auth()->check() && request()->routeIs('wallet', 'orders.show')) data-updates-url="{{ route('updates') }}" data-updates-version="{{ \App\Services\Store::updates(auth()->id()) }}" @endif>
+<main class="store" data-badges-url="{{ auth()->check() ? route('updates') : '' }}" @if(auth()->check() && request()->routeIs('wallet', 'orders.show')) data-updates-url="{{ route('updates') }}" data-updates-version="{{ \App\Services\Store::updates(auth()->id()) }}" @endif>
     <p class="notice" id="updates-notice" role="status" hidden>Ada perubahan status. <a href="{{ url()->full() }}">Muat ulang untuk melihatnya.</a></p>
     @if (!request()->routeIs('login', 'otp.*'))
     <header class="top">
@@ -19,6 +19,9 @@
             @auth
                 @if (in_array(auth()->user()->role, ['owner', 'admin']))
                     <a class="button secondary" href="{{ route('staff') }}">Kelola toko</a>
+                @endif
+                @if(auth()->user()->role === 'reseller')
+                <button class="button secondary information-open" type="button" data-information-open>Pusat informasi <span class="nav-badge" data-badge="informasi" @if(empty($navBadges['informasi'])) hidden @endif>{{ min(99, $navBadges['informasi'] ?? 0) }}{{ ($navBadges['informasi'] ?? 0) > 99 ? '+' : '' }}</span></button>
                 @endif
                 <a class="button secondary" href="{{ route('account') }}">Akun</a>
             @else
@@ -37,7 +40,7 @@
         @endphp
         @foreach ($navigation as $route => [$label, $icon])
             <a href="{{ route($route) }}" @if(request()->routeIs($route, $route.'.*')) aria-current="page" @endif>
-                <svg class="icon" aria-hidden="true"><use href="{{ asset('design/assets/ikon.svg') }}#{{ $icon }}"></use></svg><span>{{ $label }}</span>
+                <svg class="icon" aria-hidden="true"><use href="{{ asset('design/assets/ikon.svg') }}#{{ $icon }}"></use></svg><span>{{ $label }}</span>@auth<span class="nav-badge" data-badge="{{ $route }}" @if(empty($navBadges[$route])) hidden @endif>{{ ($navBadges[$route] ?? 0) > 99 ? '99+' : ($navBadges[$route] ?? 0) }}</span>@endauth
             </a>
         @endforeach
     </nav>
@@ -56,6 +59,7 @@
 @unless(request()->routeIs('login', 'otp.*') || request()->boolean('invoice'))
     @include('partials.whatsapp')
 @endunless
+@include('partials.information-dialog')
 <dialog class="confirm-dialog" data-confirm-dialog aria-labelledby="confirm-title" aria-describedby="confirm-copy">
     <form method="dialog" class="stack">
         <h2 id="confirm-title">Konfirmasi tindakan</h2>

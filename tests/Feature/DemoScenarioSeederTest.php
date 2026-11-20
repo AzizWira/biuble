@@ -91,6 +91,20 @@ class DemoScenarioSeederTest extends TestCase
         $response = $this->get(route('staff', ['bagian' => 'aktivitas']))->assertOk();
         $this->assertSame($badges['aktivitas'], substr_count($response->getContent(), 'data-attention="unread"'));
         $this->get(route('staff', ['bagian' => 'aktivitas']))->assertOk()->assertDontSee('data-attention="unread"', false);
+        $admin = User::where('email', 'auraiftitahh@gmail.com')->sole();
+        $adminBadges = NavigationBadges::for($admin);
+        foreach (['pesanan', 'topup'] as $section) {
+            $response = $this->actingAs($admin)->get(route('staff', ['bagian' => $section]))->assertOk();
+            $this->assertSame($adminBadges[$section], substr_count($response->getContent(), 'data-attention="action"'), 'admin '.$section);
+        }
+        foreach (['garansi', 'masalah'] as $kind) {
+            $response = $this->get('/bantuan/'.$kind)->assertOk();
+            $this->assertSame($adminBadges[$kind], substr_count($response->getContent(), 'data-attention="action"'), 'admin '.$kind);
+        }
+        $this->get(route('staff', ['bagian' => 'pesanan']))->assertDontSee('Refund item ke saldo');
+        foreach (['penarikan', 'penghapusan', 'aktivitas'] as $section) {
+            $this->get(route('staff', ['bagian' => $section]))->assertNotFound();
+        }
         $buyer = User::where('email', 'natashasheiyla@gmail.com')->sole();
         $expected = NavigationBadges::for($buyer)['orders'];
         $this->assertGreaterThan(0, $expected);

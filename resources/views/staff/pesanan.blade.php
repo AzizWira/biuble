@@ -1,9 +1,12 @@
 <section id="pesanan" class="panel"><h2>Pesanan terbaru</h2>
 @forelse($orders as $order)
-<details class="history-row"><summary>{{ $order->reference }} · {{ $order->user->name }} · {{ \App\Support\StoreLabels::status($order->status) }}</summary>
+@php
+    $progress = \App\Support\StoreLabels::orderProgress($order);
+@endphp
+<details class="history-row status-disclosure tone-{{ \App\Support\StoreLabels::tone($progress['status']) }}"><summary><span class="status-summary-copy"><strong>{{ $order->reference }}</strong><small>{{ $order->user->name }} · {{ \App\Support\StoreLabels::status($order->status) }}</small></span><span class="status-pill">{{ $progress['label'] }}</span></summary>
 <p>WhatsApp {{ $order->phone }} · Rp{{ number_format($order->total,0,',','.') }}</p><a href="{{ route('orders.show',$order) }}">Lihat detail / invoice</a>
 @foreach($order->items as $item)
-<div class="panel"><strong>{{ $item->name }}</strong><p>{{ \App\Support\StoreLabels::status($item->status) }} @if($item->email) · {{ $item->email }} @endif @if($item->designer) · Designer @endif</p>
+<div class="panel status-row tone-{{ \App\Support\StoreLabels::tone($item->status) }}"><strong>{{ $item->name }}</strong><p><span class="status-pill">{{ \App\Support\StoreLabels::status($item->status) }}</span> @if($item->email) · {{ $item->email }} @endif @if($item->designer) · Designer @endif</p>
 @if(in_array($item->status,['waiting','review']) && ($item->delivery === 'invite' || auth()->user()->role === 'owner'))
 <form class="stack" method="post" action="{{ route('staff.deliver',$item) }}">@csrf<label class="field">{{ $item->delivery === 'invite' ? 'Catatan undangan yang sudah dikirim' : 'Detail akses untuk reseller' }}<textarea name="access" maxlength="8000" required></textarea></label><button class="button">{{ $item->delivery === 'invite' ? 'Tandai undangan dikirim' : 'Berikan akses' }}</button></form>
 @endif

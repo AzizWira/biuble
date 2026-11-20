@@ -345,6 +345,7 @@ function updateBadges(counts) {
     for (const badge of document.querySelectorAll('[data-badge]')) {
         const count = counts[badge.dataset.badge] || 0;
         badge.hidden = count === 0;
+        badge.closest('.staff-menu,.support-links a,.dock a,.information-open')?.classList.toggle('has-notifications', count > 0);
         badge.textContent = count > 99 ? '99+' : String(count);
     }
 }
@@ -379,6 +380,11 @@ for (const form of document.querySelectorAll('[data-information-read],[data-info
             const response = await fetch(form.action, {method:'POST', body:new FormData(form), headers:{Accept:'application/json'}, cache:'no-store'});
             if (!response.ok) throw new Error();
             button.textContent = 'Sudah dibaca';
+            const card = form.closest('[data-information-card]');
+            if (card) {
+                card.classList.replace('tone-blue', 'tone-slate');
+                card.querySelector('[data-announcement-read-label]').textContent = 'Sudah dibaca';
+            }
             const counts = await fetch(badgeSurface.dataset.badgesUrl, {headers:{Accept:'application/json'}, cache:'no-store'});
             if (counts.ok) updateBadges((await counts.json()).badges);
             if (form.hasAttribute('data-information-read-all')) informationDialog?.close();

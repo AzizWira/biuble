@@ -3,7 +3,7 @@
 @section('body', 'order-screen')
 @section('content')
 <div class="intro"><h1>{{ $invoice ? 'Invoice pemesanan' : 'Detail pesanan' }}</h1><p>{{ $order->reference }}</p></div>
-<section class="panel"><p>Status pembayaran <strong>{{ \App\Support\StoreLabels::status($order->status) }}</strong></p>
+<section class="panel"><p>Status pembayaran <strong class="status-pill tone-{{ \App\Support\StoreLabels::tone($order->status) }}">{{ \App\Support\StoreLabels::status($order->status) }}</strong></p>
 <p>WhatsApp {{ $order->phone }}</p><p>Metode {{ \App\Support\StoreLabels::method($order->method) }}</p>
 <dl class="amounts"><div><dt>Subtotal</dt><dd>Rp{{ number_format($order->subtotal,0,',','.') }}</dd></div><div><dt>Biaya layanan</dt><dd>Rp{{ number_format($order->fee,0,',','.') }}</dd></div><div class="total"><dt>Total</dt><dd>Rp{{ number_format($order->total,0,',','.') }}</dd></div></dl>
 <div class="transaction-actions">
@@ -35,7 +35,7 @@
 @endif
 </section>
 @foreach($order->items as $item)
-<article class="panel" id="item-{{ $item->id }}"><h2>{{ $item->name }}</h2><p class="badge">{{ \App\Support\StoreLabels::status($item->status) }}</p>
+<article class="panel" id="item-{{ $item->id }}"><h2>{{ $item->name }}</h2><p class="status-pill tone-{{ \App\Support\StoreLabels::tone($item->status) }}">{{ \App\Support\StoreLabels::status($item->status) }}</p>
 <p>Rp{{ number_format($item->amount,0,',','.') }} @if($item->designer) · Designer @endif</p>
 @if($item->email)<p>Email undangan {{ $item->email }}</p>@endif
 @if($item->status === 'delivered')

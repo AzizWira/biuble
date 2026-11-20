@@ -4,13 +4,16 @@
 @section('content')
 <div class="intro"><h1>Riwayat pesanan</h1></div>
 @forelse($orders as $order)
-    <article class="panel order-summary">
+    @php
+        $progress = \App\Support\StoreLabels::orderProgress($order);
+    @endphp
+    <article class="panel order-summary status-row tone-{{ \App\Support\StoreLabels::tone($progress['status']) }}">
         <a class="order-link" href="{{ route('orders.show', $order) }}">
             <div class="transaction-heading">
                 <strong>{{ $order->reference }}</strong>
-                <span class="badge">{{ \App\Support\StoreLabels::status($order->status) }}</span>
+                <span class="status-pill">{{ $progress['label'] }}</span>
             </div>
-            <p>Rp{{ number_format($order->total, 0, ',', '.') }} · {{ \App\Support\StoreLabels::date($order->created_at) }}</p>
+            <p>{{ \App\Support\StoreLabels::status($order->status) }} · Rp{{ number_format($order->total, 0, ',', '.') }} · {{ \App\Support\StoreLabels::date($order->created_at) }}</p>
         </a>
         @include('support.order-proof-summary')
     </article>

@@ -4,6 +4,49 @@ namespace App\Support;
 
 class StoreLabels
 {
+    public static function tone(string $status): string
+    {
+        return match ($status) {
+            'pending', 'reserved', 'submitted', 'inspection' => 'amber',
+            'paid', 'waiting', 'review', 'reviewing', 'processing', 'used' => 'blue',
+            'waiting_owner', 'refund_requested', 'scheduled' => 'violet',
+            'waiting_customer', 'correction' => 'peach',
+            'resolved', 'delivered', 'accepted', 'approved', 'active', 'available',
+            'transferred', 'refunded', 'refunded_gateway', 'published' => 'mint',
+            'rejected', 'failed', 'suspended' => 'rose',
+            default => 'slate',
+        };
+    }
+
+    public static function orderProgress(\App\Models\Order $order): array
+    {
+        if ($order->status !== 'paid') {
+            return ['status' => $order->status, 'label' => $order->status === 'pending' ? 'Menunggu pembayaran' : self::status($order->status)];
+        }
+        $items = $order->items;
+        if ($items->contains('status', 'refund_requested')) {
+            return ['status' => 'refund_requested', 'label' => 'Refund menunggu owner'];
+        }
+        if ($items->contains('status', 'review')) {
+            return ['status' => 'review', 'label' => 'Perlu pemeriksaan'];
+        }
+        $waiting = $items->where('status', 'waiting');
+        if ($waiting->isNotEmpty()) {
+            $label = $items->contains('status', 'delivered') ? 'Sebagian akses menunggu'
+                : ($waiting->every(fn ($item) => $item->delivery === 'invite') ? 'Menunggu undangan' : 'Menunggu akun');
+            return ['status' => 'waiting', 'label' => $label];
+        }
+        $delivered = $items->where('status', 'delivered');
+        if ($delivered->isNotEmpty()) {
+            $ended = $delivered->every(fn ($item) => $item->ends_at && $item->ends_at->isPast());
+            return ['status' => $ended ? 'expired' : 'delivered', 'label' => $ended ? 'Masa akses berakhir' : 'Akses siap'];
+        }
+        if ($items->contains(fn ($item) => in_array($item->status, ['cancelled', 'refunded', 'refunded_gateway'], true))) {
+            return ['status' => 'refunded', 'label' => 'Dana dikembalikan'];
+        }
+        return ['status' => 'paid', 'label' => 'Sudah dibayar'];
+    }
+
     public static function supportStatus(string $status): string
     {
         return [

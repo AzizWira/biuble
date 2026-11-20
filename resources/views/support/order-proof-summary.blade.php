@@ -1,10 +1,13 @@
 <div class="order-proof-summary">
-    @if($order->items->isEmpty())
+    @php
+        $proofItems = $order->items->where('login_proof_required', true);
+    @endphp
+    @if($proofItems->isEmpty())
         <p>Bukti login tidak diperlukan.</p>
     @else
         <h2>Bukti login</h2>
         <ul>
-            @foreach($order->items as $item)
+            @foreach($proofItems as $item)
                 @php
                     $deadline = $item->loginProofDeadline();
                     [$label, $tone, $action] = match (true) {
@@ -18,13 +21,16 @@
                         default => ['Belum diunggah', 'pending', 'Unggah bukti'],
                     };
                 @endphp
-                <li class="order-proof-row">
+                @php
+                    $proofState = $item->loginProof?->status ?? ($deadline && now()->gt($deadline) ? 'expired' : 'pending');
+                @endphp
+                <li class="order-proof-row status-row tone-{{ \App\Support\StoreLabels::tone($proofState) }}">
                     <div>
                         <strong>{{ $item->name }}</strong>
                         <small>Item #{{ $item->id }}@if($action === 'Unggah bukti') · Batas unggah {{ \App\Support\StoreLabels::date($deadline) }}@endif</small>
                     </div>
                     <div class="order-proof-actions">
-                        <span class="badge {{ $tone }}">{{ $label }}</span>
+                        <span class="status-pill">{{ $label }}</span>
                         @if($action && !auth()->user()->isReadOnly())
                             <a href="{{ route('orders.show', $order) }}#item-{{ $item->id }}" aria-label="{{ $action }} untuk item #{{ $item->id }}">{{ $action }}</a>
                         @endif

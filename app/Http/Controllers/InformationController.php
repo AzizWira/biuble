@@ -11,7 +11,7 @@ class InformationController extends Controller
 {
     public function index(Request $request)
     {
-        return view('information', ['announcements' => Announcement::live()->latest('starts_at')->paginate(15)]);
+        return view('information', ['readRevisions' => DB::table('announcement_reads')->where('user_id', $request->user()->id)->pluck('revision', 'announcement_id'), 'announcements' => Announcement::live()->latest('starts_at')->paginate(15)]);
     }
 
     public function read(Request $request)

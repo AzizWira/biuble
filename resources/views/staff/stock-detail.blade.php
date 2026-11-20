@@ -68,7 +68,7 @@
                         default => StoreLabels::status($slot->state),
                     };
                 @endphp
-                <div class="stock-slot" id="stok-profil-{{ $slot->id }}">
+                <div class="stock-slot status-row tone-{{ StoreLabels::tone($canRestock || $ending ? 'inspection' : $slot->state) }}" id="stok-profil-{{ $slot->id }}">
                     @include('staff.stock-feedback', ['target' => 'stok-profil-'.$slot->id])
                     <div class="stock-event">
                         <strong>{{ $slot->label }}</strong>
@@ -83,7 +83,7 @@
                         @endif
                     </div>
                     <div class="stock-slot-actions">
-                        <span class="badge {{ $slot->state === 'available' ? 'ready' : '' }} {{ $ending ? 'stock-stat-ending' : '' }} {{ $canRestock ? 'stock-stat-inspection' : '' }}">{{ $status }}</span>
+                        <span class="status-pill">{{ $status }}</span>
                         @include('partials.remove-data', ['removeKind' => 'slot', 'removeId' => $slot->id, 'removeLabel' => 'slot'])
                         @if($canRestock)
                             <form method="post" action="{{ route('staff.recycle', $slot) }}"

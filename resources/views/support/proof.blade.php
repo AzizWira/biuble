@@ -7,7 +7,7 @@
     @if($buyer)<p>Bukti login tidak diperlukan.</p>@endif
 @elseif($proof)
     <div class="stack">
-        <p><strong>Bukti login {{ mb_strtolower($proofStatus[$proof->status]) }}.</strong> Dikirim {{ \App\Support\StoreLabels::date($proof->created_at) }}.</p>
+        <p class="status-note tone-{{ \App\Support\StoreLabels::tone($proof->status) }}"><strong>Bukti login {{ mb_strtolower($proofStatus[$proof->status]) }}.</strong> Dikirim {{ \App\Support\StoreLabels::date($proof->created_at) }}.</p>
         @if($proof->device)<p><strong>Perangkat customer</strong> {{ $proof->device }}<br><strong>Lokasi customer</strong> {{ $proof->location }}</p>@endif
         @if($proof->review_note)<p>{{ $proof->review_note }}</p>@endif
         @foreach($proof->files->sortByDesc('id') as $file)
@@ -24,11 +24,11 @@
         @endif
     </div>
 @elseif(!$deadline)
-    <p>Bukti login wajib. Waktu unggah 24 jam dimulai saat akses diserahkan.</p>
+    <p class="status-note tone-amber">Bukti login wajib. Waktu unggah 24 jam dimulai saat akses diserahkan.</p>
 @elseif(now()->gt($deadline))
-    <p>Batas 24 jam sudah lewat. Bukti login untuk item #{{ $item->id }} belum dikirim.@if($item->warranty_days) Garansi tidak dapat diajukan.@endif</p>
+    <p class="status-note tone-rose">Batas 24 jam sudah lewat. Bukti login untuk item #{{ $item->id }} belum dikirim.@if($item->warranty_days) Garansi tidak dapat diajukan.@endif</p>
 @else
-    <p>Bukti login wajib. Unggah paling lambat <strong>{{ \App\Support\StoreLabels::date($deadline) }}</strong>.</p>
+    <p class="status-note tone-amber">Bukti login wajib. Unggah paling lambat <strong>{{ \App\Support\StoreLabels::date($deadline) }}</strong>.</p>
 @endif
 
 @if($buyer && $item->login_proof_required && $item->status === 'delivered' && $deadline

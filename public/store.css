@@ -431,3 +431,62 @@ details[open] > summary { margin-bottom:16px; }
  .profile-input-row { gap:9px; padding:11px; }
  .promo-card { padding:16px; }
 }
+
+/* Consistent status colours across orders, support, money, and account screens. */
+.tone-amber { --status-bg:#fff5d9; --status-pill:#ffe5a4; --status-ink:#725015; --status-accent:#b77b1c; }
+.tone-blue { --status-bg:#edf4ff; --status-pill:#d5e5fc; --status-ink:#285183; --status-accent:#517fb3; }
+.tone-violet { --status-bg:#f1ebff; --status-pill:#e3d6fb; --status-ink:#62458b; --status-accent:#8965b8; }
+.tone-peach { --status-bg:#fff0e5; --status-pill:#ffdcc3; --status-ink:#85502c; --status-accent:#c47d48; }
+.tone-mint { --status-bg:#eaf7ef; --status-pill:#ccebd8; --status-ink:#2d6545; --status-accent:#4c936a; }
+.tone-rose { --status-bg:#fff0f2; --status-pill:#f7d0d9; --status-ink:#89364d; --status-accent:#bd6078; }
+.tone-slate { --status-bg:#f2f4f7; --status-pill:#e1e6ed; --status-ink:#536173; --status-accent:#8793a3; }
+.status-row { background:var(--status-bg,var(--paper)); border:1px solid var(--line); border-left:4px solid var(--status-accent,var(--line)); border-radius:15px; padding:16px 18px; margin:12px 0; }
+.status-row > :last-child { margin-bottom:0; }
+.status-pill { display:inline-flex; align-items:center; gap:7px; width:fit-content; max-width:100%; flex-shrink:0; padding:5px 10px; border-radius:999px; background:var(--status-pill,#e1e6ed); color:var(--status-ink,#536173); font-size:.77rem; line-height:1.4; font-weight:800; vertical-align:middle; }
+.status-pill::before { content:''; display:block; flex:none; width:6px; height:6px; border-radius:50%; background:var(--status-accent,#8793a3); }
+.status-disclosure { border:0; padding:0 0 16px; margin:18px 0; }
+.status-disclosure > summary { display:flex; align-items:center; gap:12px; padding:15px 17px; background:var(--status-bg); border:1px solid var(--line); border-left:4px solid var(--status-accent); border-radius:14px; list-style:none; }
+.status-disclosure > summary::-webkit-details-marker { display:none; }
+.status-disclosure > summary::before { content:''; flex:none; width:7px; height:7px; border-right:2px solid var(--status-ink); border-bottom:2px solid var(--status-ink); transform:rotate(-45deg); transition:transform .15s; }
+.status-disclosure[open] > summary::before { transform:rotate(45deg); }
+.status-disclosure > summary > .status-pill { margin-left:auto; }
+.status-summary-copy { display:grid; gap:4px; min-width:0; overflow-wrap:anywhere; }
+.status-summary-copy small { font-weight:600; font-size:.8rem; color:var(--muted); }
+.status-disclosure > :not(summary) { margin-left:12px; margin-right:12px; }
+.status-disclosure[open] > summary { margin-bottom:16px; }
+.status-note { padding:12px 15px; border-left:4px solid var(--status-accent); border-radius:12px; background:var(--status-bg); color:var(--status-ink); }
+.stock-account-link.status-row { background:var(--status-bg); }
+.stock-account-link.status-row:hover { filter:brightness(.98); border-color:var(--status-accent); }
+.order-proof-row.status-row { margin:9px 0; padding:12px; }
+.order-proof-actions .status-pill { font-size:.73rem; }
+.notification-row p { margin-top:9px; }
+.information-card.status-row { margin:0; padding:20px; }
+.ledger-entry.status-row { margin:14px 0; }
+/* Floating counts keep every menu label aligned, with or without notifications. */
+.section-nav { row-gap:18px; }
+.staff-menu { justify-content:flex-start; text-align:left; overflow:visible; padding-right:20px; }
+.staff-menu > .menu-dot { flex-shrink:0; }
+.staff-menu.has-notifications { border-color:#b78050; }
+.staff-menu.has-notifications > .menu-dot { background:#bf7b3b; border-color:#9b622d; }
+.staff-menu[aria-current] { border-color:var(--ink); }
+.staff-menu > .nav-badge,.support-links > a > .nav-badge { position:absolute; top:-11px; right:10px; margin:0; min-width:28px; height:28px; padding:0 5px; border:3px solid var(--cream); box-shadow:0 2px 2px #23345122; pointer-events:none; }
+.staff-menu > .nav-badge { background:#a45f2d; }
+.staff-menu.menu-informasi > .nav-badge { background:#3e7593; }
+.staff-menu.menu-aktivitas > .nav-badge,.staff-menu.menu-penarikan > .nav-badge { background:#7c5a9d; }
+.staff-menu.menu-penghapusan > .nav-badge { background:#b14c66; }
+.support-links { gap:16px; padding-top:8px; }
+.support-links > a { position:relative; }
+.support-links > a.has-notifications { border-color:#b78050; }
+.support-links > a:first-child > .nav-badge { background:#3e7593; }
+.support-links > a:last-child > .nav-badge { background:#b14c66; }
+@media(max-width:640px) {
+ .status-row { padding:13px; }
+ .status-disclosure > summary { flex-wrap:wrap; padding:12px; gap:10px; }
+ .status-summary-copy { flex:1; min-width:150px; }
+ .status-disclosure > summary > .status-pill { margin-left:19px; }
+ .status-pill { font-size:.72rem; }
+ .stock-account-link.status-row { align-items:flex-start; gap:12px; }
+ .information-card.status-row { padding:15px; }
+ .staff-menu > .nav-badge,.support-links > a > .nav-badge { min-width:25px; height:25px; top:-10px; right:8px; font-size:10px; }
+}
+@media(prefers-reduced-motion:reduce) { .status-disclosure > summary::before { transition:none; } }

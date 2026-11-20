@@ -25,7 +25,7 @@
     @include('support.links')
 @endif
 <section class="panel"><h2>Notifikasi</h2>
-@forelse($notifications as $notification)<p>{{ $notification->message }} @if($notification->support_case_id)<a href="{{ route('support.show',$notification->support_case_id) }}">Lihat pengajuan</a>@elseif($notification->order_id)<a href="{{ route('orders.show',$notification->order_id) }}">Lihat pesanan</a>@endif</p>
+@forelse($notifications as $notification)<article class="notification-row status-row tone-{{ $notification->read_at ? 'slate' : 'blue' }}"><span class="status-pill">{{ $notification->read_at ? 'Sudah dibaca' : 'Baru' }}</span><p>{{ $notification->message }} @if($notification->support_case_id)<a href="{{ route('support.show',$notification->support_case_id) }}">Lihat pengajuan</a>@elseif($notification->order_id)<a href="{{ route('orders.show',$notification->order_id) }}">Lihat pesanan</a>@endif</p></article>
 @empty<p>Belum ada pemberitahuan.</p>@endforelse
 </section>
 @endsection

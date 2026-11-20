@@ -32,10 +32,10 @@
 <p>Dana ditahan saat pengajuan dikirim. Owner memeriksa dan mentransfer secara manual.</p><button class="button">Ajukan penarikan</button>
 </form></section>
 <section class="panel"><h2>Riwayat top-up</h2>
-@forelse($topups as $topup)<article class="history-row transaction-row">
+@forelse($topups as $topup)<article class="history-row transaction-row status-row tone-{{ \App\Support\StoreLabels::tone($topup->status) }}">
 <strong>{{ $topup->reference }}</strong><small class="history-date">{{ \App\Support\StoreLabels::date($topup->created_at) }}</small>
 <p>Saldo Rp{{ number_format($topup->amount,0,',','.') }} · biaya Rp{{ number_format($topup->fee,0,',','.') }} · total Rp{{ number_format($topup->total,0,',','.') }}</p>
-<div class="transaction-actions"><span class="badge">{{ \App\Support\StoreLabels::status($topup->status) }}</span>
+<div class="transaction-actions"><span class="status-pill">{{ \App\Support\StoreLabels::status($topup->status) }}</span>
 @if($topup->method !== 'manual' && $topup->status === 'pending')<form action="{{ route('payment',$topup->reference) }}" method="post">@csrf<button class="button secondary">Bayar DOKU</button></form>@endif
 @if($topup->pending_doku_link)
     <form action="{{ route('payment.check', $topup->reference) }}" method="post">@csrf<button class="button secondary">Cek status DOKU</button></form>
@@ -44,12 +44,12 @@
 </article>@empty<p>Belum ada top-up.</p>@endforelse
 </section>
 <section class="panel"><h2>Pengajuan penarikan</h2>
-@forelse($withdrawals as $withdrawal)<article class="history-row"><div class="transaction-heading"><strong>Penarikan #{{ $withdrawal->id }}</strong><span class="badge">{{ \App\Support\StoreLabels::status($withdrawal->status) }}</span></div><small class="history-date">{{ \App\Support\StoreLabels::date($withdrawal->created_at) }}</small><p>Dipotong dari saldo Rp{{ number_format($withdrawal->amount,0,',','.') }} · biaya Rp{{ number_format($withdrawal->fee,0,',','.') }} · diterima Rp{{ number_format($withdrawal->net,0,',','.') }}</p></article>@empty<p>Belum ada pengajuan.</p>@endforelse
+@forelse($withdrawals as $withdrawal)<article class="history-row status-row tone-{{ \App\Support\StoreLabels::tone($withdrawal->status) }}"><div class="transaction-heading"><strong>Penarikan #{{ $withdrawal->id }}</strong><span class="status-pill">{{ \App\Support\StoreLabels::status($withdrawal->status) }}</span></div><small class="history-date">{{ \App\Support\StoreLabels::date($withdrawal->created_at) }}</small><p>Dipotong dari saldo Rp{{ number_format($withdrawal->amount,0,',','.') }} · biaya Rp{{ number_format($withdrawal->fee,0,',','.') }} · diterima Rp{{ number_format($withdrawal->net,0,',','.') }}</p></article>@empty<p>Belum ada pengajuan.</p>@endforelse
 </section>
 <section class="panel"><h2>Mutasi saldo</h2><p class="ledger-intro">Dana masuk bertanda +, dana keluar bertanda −. Sumber saldo menunjukkan dana mana yang digunakan.</p>
 @forelse($entries as $entry)
 @php($entryOrder = $ledgerOrders->get(\App\Support\StoreLabels::entryOrderId($entry)))
-<article class="ledger-entry">
+<article class="ledger-entry status-row tone-{{ $entry->amount < 0 ? 'peach' : 'mint' }}">
 <div class="ledger-heading"><strong>{{ \App\Support\StoreLabels::entryTitle($entry) }}</strong><span class="ledger-amount {{ $entry->amount < 0 ? 'is-debit' : 'is-credit' }}">{{ $entry->amount < 0 ? '−' : '+' }}Rp{{ number_format(abs($entry->amount),0,',','.') }}</span></div>
 <small>{{ \App\Support\StoreLabels::date($entry->created_at) }}</small>
 <p>{{ $entryOrder ? 'Diambil dari saldo' : 'Sumber saldo' }}: {{ \App\Support\StoreLabels::source($entry->source) }}</p>

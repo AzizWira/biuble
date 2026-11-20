@@ -1,7 +1,7 @@
 <section class="panel stack">
     <div><h2>Pengajuan hapus akun</h2><p>Periksa alasan admin sebelum memutuskan apakah akses reseller perlu dicabut.</p></div>
     @forelse($removals as $removal)
-        <article class="history-row stack">
+        <article class="history-row stack status-row tone-violet"><span class="status-pill">Menunggu keputusan owner</span>
             <div>
                 <strong>{{ $removal->user->name }}</strong>
                 <p>{{ $removal->user->email }}</p>

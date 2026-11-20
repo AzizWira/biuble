@@ -1,6 +1,6 @@
 <section id="penarikan" class="panel"><h2>Penarikan menunggu transfer</h2>
 @forelse($withdrawals as $withdrawal)
-<article class="history-row"><strong>#{{ $withdrawal->id }} · {{ $withdrawal->user->name }}</strong><p>{{ $withdrawal->destination }}</p>
+<article class="history-row status-row tone-violet"><span class="status-pill">Menunggu transfer owner</span> <strong>#{{ $withdrawal->id }} · {{ $withdrawal->user->name }}</strong><p>{{ $withdrawal->destination }}</p>
 <p>Nominal Rp{{ number_format($withdrawal->amount,0,',','.') }} · biaya Rp{{ number_format($withdrawal->fee,0,',','.') }} · transfer Rp{{ number_format($withdrawal->net,0,',','.') }}</p>
 <p>Sumber @foreach($withdrawal->allocation as $source=>$value) {{ \App\Support\StoreLabels::source($source) }} Rp{{ number_format($value,0,',','.') }} @endforeach</p>
 <form class="stack" method="post" action="{{ route('staff.withdrawal',$withdrawal) }}" data-confirm="Pastikan transfer sudah berhasil sebelum menandainya selesai.">@csrf

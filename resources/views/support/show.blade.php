@@ -7,7 +7,7 @@
         <a href="{{ route('support.index', $case->kind) }}">Kembali ke daftar pengajuan</a>
         <h1>{{ $case->subject }}</h1>
         <p>{{ $case->kind === 'garansi' ? 'Pengajuan Garansi' : 'Pengaduan Masalah' }} #{{ $case->id }} · {{ $case->user->name }}</p>
-        <span class="badge">{{ \App\Support\StoreLabels::supportStatus($case->status) }}</span>
+        <span class="status-pill tone-{{ \App\Support\StoreLabels::tone($case->status) }}">{{ \App\Support\StoreLabels::supportStatus($case->status) }}</span>
     </div>
     @if($staff)
         <div>@include('support.contact-reseller', ['phone' => $case->order?->phone ?: $case->user->phone])</div>

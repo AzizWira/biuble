@@ -154,8 +154,8 @@ class ShopController extends Controller
             return redirect()->route('staff');
         }
         $orders = Order::where('user_id', $request->user()->id)
-            ->with(['items' => fn ($items) => $items->where('login_proof_required', true)
-                ->select(['id', 'order_id', 'name', 'status', 'delivered_at', 'login_proof_required'])
+            ->with(['items' => fn ($items) => $items
+                ->select(['id', 'order_id', 'name', 'status', 'delivery', 'delivered_at', 'ends_at', 'login_proof_required'])
                 ->with('loginProof:id,order_item_id,status')->orderBy('id')])
             ->latest()->paginate(20);
 

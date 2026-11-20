@@ -14,12 +14,12 @@
         @endif
     </div>
     @forelse($cases as $case)
-        <a class="stock-account-link" href="{{ route('support.show', $case) }}">
+        <a class="stock-account-link status-row tone-{{ \App\Support\StoreLabels::tone($case->status) }}" href="{{ route('support.show', $case) }}">
             <span>
                 <strong>#{{ $case->id }} · {{ $case->subject }}</strong>
                 <small>{{ $staff ? $case->user->name.' · ' : '' }}{{ $case->order ? $case->order->reference.' · ' : '' }}{{ \App\Support\StoreLabels::date($case->updated_at) }}</small>
             </span>
-            <span class="badge">{{ \App\Support\StoreLabels::supportStatus($case->status) }}</span>
+            <span class="status-pill">{{ \App\Support\StoreLabels::supportStatus($case->status) }}</span>
         </a>
     @empty
         <p>Belum ada pengajuan.</p>
@@ -30,9 +30,9 @@
     <section class="panel stack">
         <h2>Bukti login menunggu pemeriksaan</h2>
         @forelse($proofs as $proof)
-            <a class="stock-account-link" href="{{ route('orders.show', $proof->orderItem->order_id) }}#item-{{ $proof->order_item_id }}">
+            <a class="stock-account-link status-row tone-amber" href="{{ route('orders.show', $proof->orderItem->order_id) }}#item-{{ $proof->order_item_id }}">
                 <span><strong>{{ $proof->orderItem->name }}</strong><small>{{ $proof->orderItem->order->reference }} · Item #{{ $proof->order_item_id }}</small></span>
-                <span>Periksa bukti</span>
+                <span class="status-pill">Periksa bukti</span>
             </a>
         @empty
             <p>Semua bukti login sudah diperiksa.</p>

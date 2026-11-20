@@ -1,6 +1,6 @@
 <section id="admin" class="panel"><h2>Akun admin toko</h2>
 @foreach($admins as $admin)
-    <article class="managed-account">
+    <article class="managed-account status-row tone-{{ \App\Support\StoreLabels::tone($admin->account_status) }}">
         <strong>{{ $admin->name }}</strong><p>{{ $admin->email }}</p>
         @include('partials.account-status', ['managedUser' => $admin])
         @include('partials.account-management', ['managedUser' => $admin])

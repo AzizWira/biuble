@@ -1,8 +1,9 @@
 <section id="pesanan" class="panel"><h2>Pesanan terbaru</h2><p class="attention-explanation">Tanda ! menunjukkan pesanan yang dihitung pada badge Pesanan dan masih perlu ditangani. Satu pesanan dihitung sekali.</p>
+<p class="attention-explanation">Badge ini adalah antrean pekerjaan, bukan tanda belum dibaca. Angkanya berkurang setelah akses/undangan diberikan atau refund diselesaikan. Membuka pesanan saja tidak menghapusnya. @if(auth()->user()->role === 'admin')Untuk admin, hanya undangan yang dapat kamu tangani yang dihitung; penyerahan akun manual dan refund menjadi tugas owner.@endif</p>
 @forelse($orders as $order)
 @php
     $progress = \App\Support\StoreLabels::orderProgress($order);
-    $needsAttention = $order->paid_at && $order->items->contains(fn ($item) => in_array($item->status, ['waiting', 'review', 'refund_requested'], true));
+    $needsAttention = \App\Services\NavigationBadges::orderNeedsAttention($order, auth()->user());
 @endphp
 <details class="history-row status-disclosure tone-{{ \App\Support\StoreLabels::tone($progress['status']) }}"><summary><span class="status-summary-copy">@if($needsAttention)@include('partials.attention')@endif<strong>{{ $order->reference }}</strong><small>{{ $order->user->name }} · {{ \App\Support\StoreLabels::status($order->status) }}</small></span><span class="status-pill">{{ $progress['label'] }}</span></summary>
 <p>WhatsApp {{ $order->phone }} · Rp{{ number_format($order->total,0,',','.') }}</p><a href="{{ route('orders.show',$order) }}">Lihat detail / invoice</a>

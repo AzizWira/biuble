@@ -35,7 +35,7 @@ class DemoScenarioSeeder extends Seeder
 
     public function run(): void
     {
-        if (Store::setting('demo_scenarios_version') === '2026-11-21') {
+        if (Store::setting('demo_scenarios_version') === '2026-11-23') {
             $this->command?->info('Skenario demo sudah tersedia. Data yang sudah dicoba tetap dipertahankan.');
             return;
         }
@@ -62,13 +62,13 @@ class DemoScenarioSeeder extends Seeder
                     'promotion_save' => 'DEMO diskon berjangka di beranda'] as $action => $subject) {
                     Store::audit($action, $subject);
                 }
-                DB::table('store_settings')->updateOrInsert(['key' => 'demo_scenarios_version'], ['value' => '2026-11-21']);
+                DB::table('store_settings')->updateOrInsert(['key' => 'demo_scenarios_version'], ['value' => '2026-11-23']);
             });
         } finally {
             Auth::forgetGuards();
         }
         $this->command?->info('Skenario demo lengkap siap. Semua saldo, bukti gambar, akun layanan, dan transaksi DEMO adalah simulasi.');
-        $this->command?->info('Owner: wira123widodo@gmail.com | Admin: auraiftitahh@gmail.com | Reseller: natashasheiyla@gmail.com');
+        $this->command?->info('Owner: btrihapsari@gmail.com | Admin: hrchyosazu@gmail.com | Reseller: biubleemail01@gmail.com');
     }
 
     private function account(string $email, string $name, string $role, string $phone, array $extra = []): User
@@ -82,9 +82,9 @@ class DemoScenarioSeeder extends Seeder
 
     private function accounts(): void
     {
-        $this->owner = $this->account('wira123widodo@gmail.com', 'Wira - Owner Demo', 'owner', '080000001001');
-        $this->admin = $this->account('auraiftitahh@gmail.com', 'Aura - Admin Demo', 'admin', '080000001002');
-        $this->buyer = $this->account('natashasheiyla@gmail.com', 'Natasha - Reseller Demo', 'reseller', '080000001003');
+        $this->owner = $this->account('btrihapsari@gmail.com', 'Owner Demo', 'owner', '080000001001');
+        $this->admin = $this->account('hrchyosazu@gmail.com', 'Admin Demo', 'admin', '080000001002');
+        $this->buyer = $this->account('biubleemail01@gmail.com', 'Reseller Demo', 'reseller', '080000001003');
         $this->account('admin-kedua@example.test', 'DEMO Admin Kedua', 'admin', '080000001004');
         $this->account('admin-nonaktif@example.test', 'DEMO Admin Nonaktif', 'admin', '080000001005', ['account_status' => 'inactive', 'account_status_reason' => 'Contoh admin hanya dapat melihat data.']);
         $this->account('calon-reseller@example.test', 'DEMO Calon Reseller Baru', 'reseller', '080000001006', ['approval' => 'pending']);
@@ -317,7 +317,7 @@ class DemoScenarioSeeder extends Seeder
             ['Selamat datang di demo Biuble', 'Semua saldo, akun aplikasi, bukti, dan transaksi pada demo ini adalah data simulasi. Jangan melakukan transfer atau menggunakan akun contoh sebagai akses layanan asli.\n\nCoba menu Pesanan, Saldo, Stok, Pusat informasi, dan Diskon untuk melihat pembaruannya.', true, now()->subMinutes(30), null, $this->owner->id],
             ['Stok Netflix, Disney+, dan Prime tersedia', "Contoh informasi gabungan beberapa aplikasi.\n\n- Netflix memiliki profil dengan PIN masing-masing.\n- Disney+ memiliki 7 profil per akun.\n- Prime Video memiliki 6 profil per akun.\n- Viu, WeTV, iQIYI, dan ChatGPT menggunakan slot tanpa PIN.", true, now()->subMinutes(20), now()->addDays(3), $this->admin->id],
             ['Promo terbaru sudah dimulai', 'Lihat bagian Diskon untukmu di atas kategori. Terdapat promo Netflix, Canva, dan Viu dengan hitung mundur.', true, now()->subMinutes(10), now()->addDays(2), $this->owner->id],
-            ['DEMO informasi yang sudah dibaca', 'Contoh pengumuman yang masih tayang tetapi sudah dibaca oleh Natasha.', true, now()->subHour(), now()->addDays(2), $this->owner->id],
+            ['DEMO informasi yang sudah dibaca', 'Contoh pengumuman yang masih tayang tetapi sudah dibaca oleh reseller.', true, now()->subHour(), now()->addDays(2), $this->owner->id],
             ['DEMO pengumuman terjadwal', 'Informasi ini akan muncul otomatis setelah waktu mulai.', true, now()->addHours(6), now()->addDays(2), $this->owner->id],
             ['DEMO pengumuman sudah berakhir', 'Contoh pengumuman yang masa tayangnya selesai.', true, now()->subDays(2), now()->subHour(), $this->owner->id],
             ['DEMO draf pengumuman', 'Contoh draf yang dapat diedit dan diaktifkan oleh owner.', false, now(), null, $this->owner->id],

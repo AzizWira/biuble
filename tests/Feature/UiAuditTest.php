@@ -17,7 +17,7 @@ class UiAuditTest extends TestCase
     public function test_audit_seed_is_repeatable_and_role_pages_render(): void
     {
         $this->seed(LocalAuditSeeder::class);
-        $buyer = User::where('email','natashasheiyla@gmail.com')->firstOrFail();
+        $buyer = User::where('email','biubleemail01@gmail.com')->firstOrFail();
         $balances = Store::balances($buyer->id);
         $counts = collect(['orders','order_items','topups','wallet_entries','stock_slots','withdrawals'])
             ->mapWithKeys(fn($table)=>[$table=>DB::table($table)->count()]);
@@ -60,7 +60,7 @@ class UiAuditTest extends TestCase
         $this->snapshot('cart-filled', $this->get('/keranjang')->assertOk()->getContent());
         $this->get('/toko')->assertForbidden();
 
-        foreach (['owner'=>'wira123widodo@gmail.com', 'admin'=>'auraiftitahh@gmail.com'] as $role=>$email) {
+        foreach (['owner'=>'btrihapsari@gmail.com', 'admin'=>'hrchyosazu@gmail.com'] as $role=>$email) {
             $user=User::where('email',$email)->firstOrFail();
             $this->assertSame($role,$user->role);
             $this->actingAs($user);
@@ -86,8 +86,8 @@ class UiAuditTest extends TestCase
     {
         app()->setLocale('id');
         $this->seed(LocalAuditSeeder::class);
-        $owner=User::where('email','wira123widodo@gmail.com')->firstOrFail();
-        $buyer=User::where('email','natashasheiyla@gmail.com')->firstOrFail();
+        $owner=User::where('email','btrihapsari@gmail.com')->firstOrFail();
+        $buyer=User::where('email','biubleemail01@gmail.com')->firstOrFail();
         DB::table('store_audits')->insert([
             'actor_id'=>$owner->id,'action'=>'reseller_approved','subject'=>(string)$buyer->id,'created_at'=>now(),
         ]);

@@ -88,6 +88,7 @@ class EmailLoginController extends Controller
         }
 
         $request->session()->forget('otp');
+        $request->session()->forget(['owner_verified_at', 'reauth', 'owner_verify_section', 'demo_otp_login']);
         if ($challenge['demo'] ?? false) {
             abort_unless(DemoOtp::available($request), 404);
             abort_if(DemoOtp::ownerEmail() && DemoOtp::ownerEmail() !== $challenge['email'], 403);

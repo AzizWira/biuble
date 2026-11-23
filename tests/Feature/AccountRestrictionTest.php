@@ -17,7 +17,7 @@ class AccountRestrictionTest extends TestCase
     {
         $this->seed(LocalAuditSeeder::class);
         foreach (['suspended','inactive'] as $status) {
-            foreach (['reseller'=>'natashasheiyla@gmail.com','admin'=>'auraiftitahh@gmail.com'] as $role=>$email) {
+            foreach (['reseller'=>'biubleemail01@gmail.com','admin'=>'hrchyosazu@gmail.com'] as $role=>$email) {
                 $user=User::where('email',$email)->firstOrFail();
                 $user->forceFill(['account_status'=>$status,'account_status_reason'=>'Pembatasan untuk pengujian'])->save();
                 $this->withSession(['otp'=>['email'=>$email,'hash'=>Hash::make('123456'),
@@ -55,8 +55,8 @@ class AccountRestrictionTest extends TestCase
     {
         $this->seed(LocalAuditSeeder::class);
         $owner=User::where('role','owner')->firstOrFail();
-        $admin=User::where('email','auraiftitahh@gmail.com')->firstOrFail();
-        $buyer=User::where('email','natashasheiyla@gmail.com')->firstOrFail();
+        $admin=User::where('email','hrchyosazu@gmail.com')->firstOrFail();
+        $buyer=User::where('email','biubleemail01@gmail.com')->firstOrFail();
         $url='/toko/akun/'.$buyer->id.'/status';
         $this->actingAs($admin)->post($url,['account_status'=>'suspended'])->assertForbidden();
         $this->actingAs($buyer)->post($url,['account_status'=>'suspended'])->assertForbidden();
@@ -81,7 +81,7 @@ class AccountRestrictionTest extends TestCase
     public function test_an_existing_session_loses_write_access_immediately_after_restriction(): void
     {
         $this->seed(LocalAuditSeeder::class);
-        $buyer=User::where('email','natashasheiyla@gmail.com')->firstOrFail();
+        $buyer=User::where('email','biubleemail01@gmail.com')->firstOrFail();
         $this->actingAs($buyer);
         DB::table('users')->where('id',$buyer->id)->update(['account_status'=>'suspended']);
         $before=DB::table('topups')->count();
@@ -91,7 +91,7 @@ class AccountRestrictionTest extends TestCase
     public function test_restriction_does_not_discard_confirmed_payments_already_in_progress(): void
     {
         $this->seed(LocalAuditSeeder::class);
-        $buyer=User::where('email','natashasheiyla@gmail.com')->firstOrFail();
+        $buyer=User::where('email','biubleemail01@gmail.com')->firstOrFail();
         $before=\App\Services\Store::balances($buyer->id)['topup'];
         $topup=app(\App\Services\Wallet::class)->topup($buyer,['amount'=>5000,'method'=>'QRIS'],(string)\Illuminate\Support\Str::uuid(),null);
         $buyer->forceFill(['account_status'=>'suspended'])->save();

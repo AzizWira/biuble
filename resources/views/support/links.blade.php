@@ -1,4 +1,7 @@
 <nav class="support-links" aria-label="Bantuan Biuble">
     <a class="button secondary {{ !empty($navBadges['garansi']) ? 'has-notifications' : '' }}" href="{{ route('support.index', 'garansi') }}" @if(request()->routeIs('support.index') && request()->route('kind') === 'garansi') aria-current="page" @endif>Pengajuan Garansi <span class="nav-badge" data-badge="garansi" @if(empty($navBadges['garansi'])) hidden @endif>{{ ($navBadges['garansi'] ?? 0) > 99 ? '99+' : ($navBadges['garansi'] ?? 0) }}</span></a>
     <a class="button secondary {{ !empty($navBadges['masalah']) ? 'has-notifications' : '' }}" href="{{ route('support.index', 'masalah') }}" @if(request()->routeIs('support.index') && request()->route('kind') === 'masalah') aria-current="page" @endif>Pengaduan Masalah <span class="nav-badge" data-badge="masalah" @if(empty($navBadges['masalah'])) hidden @endif>{{ ($navBadges['masalah'] ?? 0) > 99 ? '99+' : ($navBadges['masalah'] ?? 0) }}</span></a>
+    @if(in_array(auth()->user()->role, ['owner', 'admin'], true))
+    <a class="button secondary support-proof-link {{ !empty($navBadges['bukti-login']) ? 'has-notifications' : '' }}" href="{{ route('support.index', 'garansi') }}#bukti-login">Periksa bukti login <span class="nav-badge" data-badge="bukti-login" @if(empty($navBadges['bukti-login'])) hidden @endif>{{ ($navBadges['bukti-login'] ?? 0) > 99 ? '99+' : ($navBadges['bukti-login'] ?? 0) }}</span></a>
+    @endif
 </nav>

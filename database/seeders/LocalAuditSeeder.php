@@ -21,16 +21,16 @@ class LocalAuditSeeder extends Seeder
         $this->call(LocalAuditWarrantySeeder::class);
         DB::transaction(function () {
             $accounts = [
-                'natashasheiyla@gmail.com' => ['Natasha', 'reseller'],
-                'wira123widodo@gmail.com' => ['Wira', 'owner'],
-                'auraiftitahh@gmail.com' => ['Aura', 'admin'],
+                'biubleemail01@gmail.com' => ['Reseller Demo', 'reseller'],
+                'btrihapsari@gmail.com' => ['Owner Demo', 'owner'],
+                'hrchyosazu@gmail.com' => ['Admin Demo', 'admin'],
             ];
             foreach ($accounts as $email => [$name, $role]) {
                 User::unguarded(fn () => User::firstOrCreate(['email' => $email], [
                     'name' => $name, 'password' => Hash::make(Str::random(64)), 'role' => $role, 'approval' => 'approved',
                 ]));
             }
-            $buyer = User::where('email', 'natashasheiyla@gmail.com')->firstOrFail();
+            $buyer = User::where('email', 'biubleemail01@gmail.com')->firstOrFail();
             if ($buyer->role !== 'reseller' || $buyer->approval !== 'approved' || $buyer->isReadOnly()) {
                 $this->command?->warn('Data transaksi demo dilewati karena akun contoh tidak memiliki akses reseller aktif.');
                 return;

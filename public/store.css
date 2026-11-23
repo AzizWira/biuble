@@ -566,3 +566,8 @@ details[open] > summary { margin-bottom:16px; }
 @media(max-width:640px) {
  .discount-list .promo-grid { grid-template-columns:1fr; grid-auto-flow:row; grid-auto-columns:auto; overflow:visible; gap:30px; padding-bottom:12px; }
 }
+
+.role-guide { margin:18px 0; border:1px solid var(--line); border-radius:14px; padding:10px 14px; background:var(--paper); }
+.role-guide p { font-size:.84rem; line-height:1.7; }
+.support-links > a:nth-child(2) > .nav-badge { background:#b14c66; }
+.support-links > .support-proof-link > .nav-badge { background:#7c5a9d; }

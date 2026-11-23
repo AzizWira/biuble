@@ -1,7 +1,5 @@
 @if(auth()->user()->role === 'admin')
 <form class="editor-form" method="post" action="{{ route('staff.variant',$variant->id) }}">@csrf
-<input type="hidden" name="product_id" value="{{ $variant->product_id }}"><input type="hidden" name="name" value="{{ $variant->name }}">
-<input type="hidden" name="type" value="{{ $variant->type }}"><input type="hidden" name="delivery" value="{{ $variant->delivery }}"><input type="hidden" name="discount_percent" value="{{ $variant->discount_percent }}">
 <label class="field">Harga rupiah<input name="price" type="number" min="1" max="1000000000" value="{{ $variant->price }}" required></label>
 <p class="span-full">Admin dapat mengubah harga. Nama paket, warna, durasi, dan pengaturan lainnya dikelola owner.</p>
 @include('partials.announcement-option')

@@ -30,7 +30,7 @@ Route::post('/doku/notification', function (Request $request, Doku $doku) {
     return response()->json(['message' => 'received']);
 })->name('doku.notification');
 
-Route::middleware(['auth', 'account-write', 'throttle:store-web'])->group(function () {
+Route::middleware(['auth', 'account-write', 'role-access', 'throttle:store-web'])->group(function () {
     Route::get('/status-akun', fn (Request $request) => response()->json([
         'version' => \App\Services\Store::updates($request->user()->id),
         'badges' => \App\Services\NavigationBadges::for($request->user()),

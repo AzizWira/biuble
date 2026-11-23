@@ -10,5 +10,6 @@
 @endforeach
 </nav>
 @include('support.links')
+<details class="role-guide"><summary>Panduan akses dan badge {{ auth()->user()->role }}</summary><p>@if(auth()->user()->role === 'owner')Owner mengelola produk, kategori, diskon, akun tim, keuangan, dan keputusan garansi. Semua pekerjaan yang memerlukan keputusan owner masuk ke badge owner.@else Admin mengelola stok, undangan, pemeriksaan bukti, top-up manual, pengaduan, harga varian, serta pengumuman sendiri. Produk baru, kategori, diskon, refund, penarikan, perubahan role, dan keputusan akhir garansi dikelola owner.@endif</p><p>Badge Pesanan, Top-up, Pengajuan, dan Penarikan menghitung pekerjaan yang belum ditangani. Pusat informasi dan Aktivitas menghitung yang belum dibaca. Angka mengikuti kewenangan akunmu.</p></details>
 <div class="staff-workspace">@include('staff.'.$activeTab)</div>
 @endsection

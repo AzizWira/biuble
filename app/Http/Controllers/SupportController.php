@@ -24,6 +24,8 @@ class SupportController extends Controller
     public function index(Request $request, string $kind)
     {
         $staff = $this->isStaff($request);
+        $unreadCaseIds = DB::table('store_notifications')->where('user_id', $request->user()->id)
+            ->whereNotNull('support_case_id')->whereNull('read_at')->distinct()->pluck('support_case_id')->all();
         $cases = SupportCase::with(['order', 'user'])->where('kind', $kind)
             ->when(! $staff, fn ($query) => $query->where('user_id', $request->user()->id))
             ->orderByRaw("CASE WHEN status IN ('resolved', 'rejected') THEN 1 ELSE 0 END")
@@ -33,7 +35,7 @@ class SupportController extends Controller
                 ->paginate(20, ['*'], 'bukti')->withQueryString()
             : null;
 
-        return view('support.index', compact('cases', 'kind', 'staff', 'proofs'));
+        return view('support.index', compact('cases', 'kind', 'staff', 'proofs', 'unreadCaseIds'));
     }
 
     public function create(Request $request, string $kind)
@@ -96,6 +98,10 @@ class SupportController extends Controller
     public function show(Request $request, SupportCase $case)
     {
         $this->authorizeCase($request, $case);
+        if ($request->user()->role === 'reseller' && $case->user_id === $request->user()->id) {
+            DB::table('store_notifications')->where('user_id', $request->user()->id)->where('support_case_id', $case->id)
+                ->whereNull('read_at')->update(['read_at' => now()]);
+        }
         $case->load(['user', 'order', 'orderItem.loginProof.files']);
         $messages = $case->messages()->with(['user', 'files'])->paginate(30);
 

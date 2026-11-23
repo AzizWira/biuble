@@ -46,7 +46,7 @@ class StaffController extends Controller
             'sections' => $sections, 'activeTab' => $activeTab, 'activityReadId' => $activityReadId,
             'applicants' => User::where('role', 'reseller')->where('approval', 'pending')->where('account_status', '!=', 'deleted')->get(),
             'orders' => Order::with(['items', 'user'])
-                ->orderByDesc(OrderItem::selectRaw('1')->whereColumn('order_id', 'orders.id')->whereNotNull('orders.paid_at')->whereIn('status', ['waiting', 'review', 'refund_requested'])->limit(1))
+                ->orderByDesc(\App\Services\NavigationBadges::actionItems(OrderItem::selectRaw('1')->whereColumn('order_id', 'orders.id')->whereNotNull('orders.paid_at'), $request->user())->limit(1))
                 ->latest()->paginate(50)->withQueryString(),
             'topups' => Topup::with('user')->where('method', 'manual')->where('status', 'pending')->get(),
             'withdrawals' => Withdrawal::with('user')->where('status', 'pending')->get(),
@@ -285,6 +285,19 @@ class StaffController extends Controller
     public function variant(Request $request, ?Variant $variant = null)
     {
         Store::staff();
+        if ($request->user()->role === 'admin') {
+            abort_unless($variant, 403);
+            abort_if($request->hasAny(['product_id', 'name', 'type', 'delivery', 'color', 'duration_days', 'warranty_days', 'designer', 'active', 'discount_percent', 'login_proof_required']), 403,
+                'Admin hanya dapat mengubah harga varian. Pengaturan paket dikelola owner.');
+            $data = $request->validate(['price' => 'required|integer|min:1|max:1000000000']);
+            $announcement = \App\Services\Announcements::validate($request);
+            DB::transaction(function () use ($request, $variant, $data, $announcement) {
+                $variant->update($data);
+                \App\Services\Announcements::publish($request, $announcement);
+                Store::audit('variant_save', (string) $variant->id);
+            });
+            return back()->with('status', 'Harga varian diperbarui.');
+        }
         if (! $variant) {
             Store::owner();
         }
@@ -300,17 +313,13 @@ class StaffController extends Controller
         ]);
         $announcement = \App\Services\Announcements::validate($request);
         DB::transaction(function () use ($request, $variant, $data, $announcement) {
-            if ($variant && $request->user()->role === 'admin') {
-                $variant->update(['price' => $data['price']]);
-            } else {
-                $product = Product::findOrFail($data['product_id']);
-                $data['designer'] = $request->boolean('designer') && $product->slug === 'canva'
-                    && Str::startsWith($data['name'], 'Member');
-                $data['active'] = $request->boolean('active');
-                $data['login_proof_required'] = $product->login_proof_required;
-                $record = $variant ?? new Variant();
-                $record->fill($data)->save();
-            }
+            $product = Product::findOrFail($data['product_id']);
+            $data['designer'] = $request->boolean('designer') && $product->slug === 'canva'
+                && Str::startsWith($data['name'], 'Member');
+            $data['active'] = $request->boolean('active');
+            $data['login_proof_required'] = $product->login_proof_required;
+            $record = $variant ?? new Variant();
+            $record->fill($data)->save();
             \App\Services\Announcements::publish($request, $announcement);
             Store::audit('variant_save', (string) ($variant?->id ?? $record->id));
         });

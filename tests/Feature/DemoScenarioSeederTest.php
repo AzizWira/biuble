@@ -30,9 +30,9 @@ class DemoScenarioSeederTest extends TestCase
         Http::preventStrayRequests();
         Mail::fake();
         $this->seed(DemoScenarioSeeder::class);
-        $owner = User::where('email', 'wira123widodo@gmail.com')->sole();
-        $admin = User::where('email', 'auraiftitahh@gmail.com')->sole();
-        $buyer = User::where('email', 'natashasheiyla@gmail.com')->sole();
+        $owner = User::where('email', 'btrihapsari@gmail.com')->sole();
+        $admin = User::where('email', 'hrchyosazu@gmail.com')->sole();
+        $buyer = User::where('email', 'biubleemail01@gmail.com')->sole();
         $this->assertSame('owner', $owner->role);
         $this->assertSame('admin', $admin->role);
         $this->assertSame('reseller', $buyer->role);
@@ -91,7 +91,7 @@ class DemoScenarioSeederTest extends TestCase
         $response = $this->get(route('staff', ['bagian' => 'aktivitas']))->assertOk();
         $this->assertSame($badges['aktivitas'], substr_count($response->getContent(), 'data-attention="unread"'));
         $this->get(route('staff', ['bagian' => 'aktivitas']))->assertOk()->assertDontSee('data-attention="unread"', false);
-        $admin = User::where('email', 'auraiftitahh@gmail.com')->sole();
+        $admin = User::where('email', 'hrchyosazu@gmail.com')->sole();
         $adminBadges = NavigationBadges::for($admin);
         foreach (['pesanan', 'topup'] as $section) {
             $response = $this->actingAs($admin)->get(route('staff', ['bagian' => $section]))->assertOk();
@@ -105,7 +105,7 @@ class DemoScenarioSeederTest extends TestCase
         foreach (['penarikan', 'penghapusan', 'aktivitas'] as $section) {
             $this->get(route('staff', ['bagian' => $section]))->assertNotFound();
         }
-        $buyer = User::where('email', 'natashasheiyla@gmail.com')->sole();
+        $buyer = User::where('email', 'biubleemail01@gmail.com')->sole();
         $expected = NavigationBadges::for($buyer)['orders'];
         $this->assertGreaterThan(0, $expected);
         $response = $this->actingAs($buyer)->get(route('orders'))->assertOk();
@@ -120,7 +120,7 @@ class DemoScenarioSeederTest extends TestCase
     {
         Storage::fake('local');
         $this->seed(DemoScenarioSeeder::class);
-        $buyer = User::where('email', 'natashasheiyla@gmail.com')->sole();
+        $buyer = User::where('email', 'biubleemail01@gmail.com')->sole();
         $challenge = ['email' => $buyer->email, 'hash' => Hash::make('123456'), 'expires' => now()->addMinutes(5)->timestamp, 'attempts' => 0];
         $this->withSession(['otp' => $challenge])->post(route('otp.verify'), ['code' => '123456'])->assertRedirect(route('catalog'));
         $this->getJson(route('updates'))->assertJsonPath('badges.cart', 3);

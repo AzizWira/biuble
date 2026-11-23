@@ -11,7 +11,7 @@ class EnsureAccountWritable
     public function handle(Request $request, Closure $next)
     {
         $writing = ! $request->isMethodSafe() && ! $request->routeIs('logout');
-        $user = $writing ? $request->user()->refresh() : $request->user();
+        $user = $request->user()->refresh();
         if ($user->isArchived()) {
             Auth::logout();
             $request->session()->invalidate();

@@ -110,6 +110,7 @@ class Checkout
     {
         DB::transaction(function () use ($itemId, $buyer) {
             $buyer = Store::lockUser($buyer->id);
+            Store::reseller($buyer);
             Store::writable($buyer);
             $item = OrderItem::whereKey($itemId)->firstOrFail();
             $order = Order::whereKey($item->order_id)->lockForUpdate()->firstOrFail();

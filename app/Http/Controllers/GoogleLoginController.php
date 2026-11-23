@@ -58,6 +58,7 @@ class GoogleLoginController extends Controller
         }, 3);
 
         $request->session()->forget('otp');
+        $request->session()->forget(['owner_verified_at', 'reauth', 'owner_verify_section', 'demo_otp_login']);
         Auth::login($user);
         $request->session()->regenerate();
         \App\Services\Store::restoreDemoCart($request, $user);

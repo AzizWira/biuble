@@ -4,11 +4,14 @@
 @include('support.links')
 <section class="panel stack">
     <div>
-        <a href="{{ route('support.index', $case->kind) }}">Kembali ke daftar pengajuan</a>
+        <a class="button secondary" href="{{ route('support.index', $case->kind) }}">Kembali ke daftar pengajuan</a>
         <h1>{{ $case->subject }}</h1>
         <p>{{ $case->kind === 'garansi' ? 'Pengajuan Garansi' : 'Pengaduan Masalah' }} #{{ $case->id }} · {{ $case->user->name }}</p>
         <span class="status-pill tone-{{ \App\Support\StoreLabels::tone($case->status) }}">{{ \App\Support\StoreLabels::supportStatus($case->status) }}</span>
     </div>
+    <p class="notice">{{ $case->kind === 'garansi' ? 'Garansi ditutup sebagai selesai atau ditolak oleh owner. Admin memeriksa dan meneruskan ke owner.' : 'Pengaduan dapat ditandai selesai oleh admin atau owner. Penolakan hanya oleh owner.' }} Reseller tidak perlu menekan konfirmasi selesai. Membaca pembaruan hanya menghapus tanda baru, bukan menutup pengajuan.</p>
+    @if($case->status === 'waiting_customer')<p class="notice">Menunggu balasan atau bukti tambahan dari reseller. Setelah reseller membalas, pengajuan kembali masuk antrean pemeriksaan staf.</p>@endif
+    @if($case->status === 'waiting_owner')<p class="notice">Pengajuan sedang menunggu keputusan owner. Admin dapat menambahkan catatan, tetapi keputusan garansi tetap oleh owner.</p>@endif
     @if($staff)
         <div>@include('support.contact-reseller', ['phone' => $case->order?->phone ?: $case->user->phone])</div>
     @endif

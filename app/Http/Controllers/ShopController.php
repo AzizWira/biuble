@@ -159,7 +159,7 @@ class ShopController extends Controller
         if (in_array($request->user()->role, ['owner', 'admin'], true)) {
             return redirect()->route('staff');
         }
-        $unreadOrderIds = DB::table('store_notifications')->where('user_id', $request->user()->id)->whereNotNull('order_id')->whereNull('read_at')->distinct()->pluck('order_id')->all();
+        $unreadOrderIds = DB::table('store_notifications')->where('user_id', $request->user()->id)->whereNotNull('order_id')->whereNull('support_case_id')->whereNull('read_at')->distinct()->pluck('order_id')->all();
         $orders = Order::where('user_id', $request->user()->id)
             ->with(['items' => fn ($items) => $items
                 ->select(['id', 'order_id', 'name', 'status', 'delivery', 'delivered_at', 'ends_at', 'login_proof_required'])
@@ -174,7 +174,7 @@ class ShopController extends Controller
     {
         abort_unless($order->user_id === $request->user()->id || in_array($request->user()->role, ['owner', 'admin']), 403);
         if ($order->user_id === $request->user()->id && ! $request->boolean('invoice')) {
-            DB::table('store_notifications')->where('user_id', $request->user()->id)->where('order_id', $order->id)->whereNull('read_at')->update(['read_at' => now()]);
+            DB::table('store_notifications')->where('user_id', $request->user()->id)->where('order_id', $order->id)->whereNull('support_case_id')->whereNull('read_at')->update(['read_at' => now()]);
         }
         $order->load(['items.loginProof.files', 'payment'])->loadExists(['payment as pending_doku_link' => fn ($query) => $query
             ->where('status', 'pending')->whereNotNull('url')]);

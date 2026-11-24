@@ -12,11 +12,7 @@
     @if (session('otp'))
         <form class="stack" method="post" action="{{ route('otp.verify') }}">
             @csrf
-            @if(session('otp.demo'))
-                <p>Masukkan 6 digit kode dari halaman OTP demo.</p>
-            @else
-                <p>Masukkan 6 digit kode yang dikirim ke {{ session('otp.email') }}.</p>
-            @endif
+            <p>Masukkan 6 digit kode yang dikirim ke {{ session('otp.email') }}.</p>
             <label class="field">Kode OTP<input name="code" autocomplete="one-time-code" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" required></label>
             @error('code')<p role="alert" class="form-error">{{ $message }}</p>@enderror
             <button class="button coral-action">Masuk</button>

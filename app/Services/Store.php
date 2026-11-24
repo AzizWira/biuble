@@ -9,21 +9,6 @@ use Illuminate\Validation\ValidationException;
 
 class Store
 {
-    public static function restoreDemoCart(\Illuminate\Http\Request $request, User $user): void
-    {
-        if ($user->role !== 'reseller' || $user->approval !== 'approved' || $user->isReadOnly() || $request->session()->has('cart')) {
-            return;
-        }
-        $cart = DB::transaction(function () use ($user) {
-            $key = 'demo_cart:'.$user->email;
-            $row = DB::table('store_settings')->where('key', $key)->lockForUpdate()->first();
-            if (! $row) return null;
-            DB::table('store_settings')->where('key', $key)->delete();
-            return json_decode($row->value, true, 512, JSON_THROW_ON_ERROR);
-        });
-        if ($cart) $request->session()->put('cart', $cart);
-    }
-
     public static function setting(string $key, string $default = ''): string
     {
         return (string) (DB::table('store_settings')->where('key', $key)->value('value') ?? $default);

@@ -116,15 +116,15 @@ class DemoScenarioSeederTest extends TestCase
         $this->assertSame($expected - 1, substr_count($response->getContent(), 'data-attention="unread"'));
     }
 
-    public function test_seeded_cart_is_restored_once_after_reseller_login(): void
+    public function test_login_does_not_restore_legacy_sample_cart(): void
     {
         Storage::fake('local');
         $this->seed(DemoScenarioSeeder::class);
         $buyer = User::where('email', 'biubleemail01@gmail.com')->sole();
         $challenge = ['email' => $buyer->email, 'hash' => Hash::make('123456'), 'expires' => now()->addMinutes(5)->timestamp, 'attempts' => 0];
         $this->withSession(['otp' => $challenge])->post(route('otp.verify'), ['code' => '123456'])->assertRedirect(route('catalog'));
-        $this->getJson(route('updates'))->assertJsonPath('badges.cart', 3);
-        $this->get(route('cart'))->assertOk()->assertSee('Konfirmasi pesanan');
+        $this->getJson(route('updates'))->assertJsonPath('badges.cart', 0);
+        $this->get(route('cart'))->assertOk()->assertSee('Keranjang masih kosong');
         $this->post(route('logout'))->assertRedirect();
         $this->withSession(['otp' => $challenge])->post(route('otp.verify'), ['code' => '123456'])->assertRedirect(route('catalog'));
         $this->getJson(route('updates'))->assertJsonPath('badges.cart', 0);

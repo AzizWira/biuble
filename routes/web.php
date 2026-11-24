@@ -15,8 +15,6 @@ Route::get('/diskon', [ShopController::class, 'discounts'])->name('discounts');
 Route::get('/produk/{slug}', [ShopController::class, 'product'])->name('product');
 
 Route::middleware('guest')->group(function () {
-    Route::get('/masuk/demo', [EmailLoginController::class, 'showDemo'])->name('otp.demo');
-    Route::post('/masuk/demo', [EmailLoginController::class, 'issueDemo'])->middleware('throttle:otp-send')->block()->name('otp.demo.issue');
     Route::get('/masuk/google', [GoogleLoginController::class, 'redirect'])->name('google.redirect');
     Route::get('/masuk/google/callback', [GoogleLoginController::class, 'callback'])->name('google.callback');
     Route::get('/masuk', [EmailLoginController::class, 'show'])->name('login');

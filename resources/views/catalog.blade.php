@@ -2,6 +2,13 @@
 @section('title', 'Katalog')
 @section('body', 'catalog-screen')
 @section('content')
+@if($products->isEmpty())
+<section class="panel stack"><h1>Aplikasi segera hadir</h1><p>Katalog sedang disiapkan. Silakan kembali lagi untuk melihat aplikasi yang tersedia.</p>
+@auth
+@if(auth()->user()->role === 'owner')<a class="button" href="{{ route('staff', ['bagian'=>'kategori']) }}">Mulai kelola katalog</a>@endif
+@endauth
+</section>
+@else
 <label class="search"><svg class="icon" aria-hidden="true"><use href="{{ asset('design/assets/ikon.svg') }}#cari"></use></svg><input id="search" type="search" placeholder="Cari aplikasi" aria-label="Cari aplikasi"></label>
 @if($promotions->isNotEmpty())
 <section class="promo-section"><div class="section-title"><h2>Diskon untukmu</h2><a class="promo-see-all" href="{{ route('discounts') }}">Lihat semua diskon &rarr;</a></div><div class="promo-grid">
@@ -71,6 +78,7 @@ for (const button of filters) {
     });
 }
 </script>
+@endif
 @endsection
 
 

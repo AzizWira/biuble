@@ -28,10 +28,6 @@ return [
 
     'env' => env('APP_ENV', 'production'),
 
-    'demo_otp_key' => env('DEMO_OTP_KEY'),
-    'demo_otp_host' => env('DEMO_OTP_HOST'),
-    'demo_otp_owner' => env('DEMO_OTP_OWNER'),
-    'demo_otp_expires_at' => env('DEMO_OTP_EXPIRES_AT'),
 
     /*
     |--------------------------------------------------------------------------

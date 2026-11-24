@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Support\DemoOtp;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -39,44 +38,11 @@ class EmailLoginController extends Controller
         return redirect()->route('login')->with('status', 'Kode masuk sudah dikirim.');
     }
 
-    public function showDemo(Request $request)
-    {
-        abort_unless(DemoOtp::available($request), 404);
-
-        return view('demo-otp');
-    }
-
-    public function issueDemo(Request $request)
-    {
-        abort_unless(DemoOtp::available($request), 404);
-        $key = $request->input('demo_key');
-        if (! is_string($key) || ! hash_equals((string) config('app.demo_otp_key'), $key)) {
-            return back()->withErrors(['demo_key' => 'Kunci akses demo tidak cocok.']);
-        }
-
-        $owners = User::where('role', 'owner')->where('account_status', 'active')
-            ->when(DemoOtp::ownerEmail(), fn ($query, $email) => $query->where('email', $email))->limit(2)->get();
-        if ($owners->count() !== 1) {
-            return back()->withErrors(['demo_key' => 'Akun owner untuk demo belum tersedia.']);
-        }
-
-        $code = (string) random_int(100000, 999999);
-        $request->session()->put('otp', [
-            'email' => $owners->first()->email,
-            'hash' => Hash::make($code),
-            'expires' => now()->addMinutes(5)->timestamp,
-            'attempts' => 0,
-            'demo' => true,
-        ]);
-
-        return redirect()->route('otp.demo')->with('demo_code', $code);
-    }
-
     public function verify(Request $request)
     {
         $code = $request->validate(['code' => 'required|digits:6'])['code'];
         $challenge = $request->session()->get('otp');
-        if (! $challenge || $challenge['expires'] <= now()->timestamp || $challenge['attempts'] >= 5) {
+        if (! $challenge || !empty($challenge['demo']) || $challenge['expires'] <= now()->timestamp || $challenge['attempts'] >= 5) {
             $request->session()->forget('otp');
 
             return back()->withErrors(['email' => 'Minta kode baru untuk melanjutkan.']);
@@ -88,30 +54,20 @@ class EmailLoginController extends Controller
         }
 
         $request->session()->forget('otp');
-        $request->session()->forget(['owner_verified_at', 'reauth', 'owner_verify_section', 'demo_otp_login']);
-        if ($challenge['demo'] ?? false) {
-            abort_unless(DemoOtp::available($request), 404);
-            abort_if(DemoOtp::ownerEmail() && DemoOtp::ownerEmail() !== $challenge['email'], 403);
-            $user = User::where('email', $challenge['email'])->where('role', 'owner')
-                ->where('account_status', 'active')->first();
-            abort_unless($user, 403);
-            $request->session()->put('demo_otp_login', true);
-        } else {
-            $user = User::firstOrCreate(['email' => $challenge['email']], [
-                'name' => Str::before($challenge['email'], '@'),
-                'password' => Hash::make(Str::random(64)),
-            ]);
-            if ($user->isArchived()) {
-                return redirect()->route('login')->withErrors(['email' => 'Akun ini sudah dihapus.']);
-            }
-            if (! $user->email_verified_at) {
-                $user->forceFill(['email_verified_at' => now()])->save();
-            }
+        $request->session()->forget(['owner_verified_at', 'reauth', 'owner_verify_section']);
+        $user = User::firstOrCreate(['email' => $challenge['email']], [
+            'name' => Str::before($challenge['email'], '@'),
+            'password' => Hash::make(Str::random(64)),
+        ]);
+        if ($user->isArchived()) {
+            return redirect()->route('login')->withErrors(['email' => 'Akun ini sudah dihapus.']);
+        }
+        if (! $user->email_verified_at) {
+            $user->forceFill(['email_verified_at' => now()])->save();
         }
 
         Auth::login($user);
         $request->session()->regenerate();
-        \App\Services\Store::restoreDemoCart($request, $user);
 
         if (in_array($user->role, ['owner', 'admin'], true)) {
             $request->session()->forget('url.intended');

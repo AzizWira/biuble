@@ -26,7 +26,6 @@ legend { font-size:.9rem; font-weight:800; padding:0 6px; }
 [hidden] { display:none!important; }
 .form-error { color:#8a3029; }
 .notice { margin:0 0 16px; } .notice p { margin:0; } .notice p + p { margin-top:8px; }
-.notice + .demo-notice { margin-top:0; }
 .notice.form-error { background:#fff0e9; border-inline-start-color:#b9634c; } .notice.form-error p { color:#8a3029; } .span-full { grid-column:1/-1; }
 /* Main navigation: inline on desktop, compact dock on phones. */
 .dock { display:flex; align-items:center; gap:6px; margin:0 0 28px; padding:6px; border:1px solid var(--line); border-radius:17px; background:#fffefaeF; }
@@ -245,7 +244,6 @@ details[open] > summary { margin-bottom:16px; }
 }
 @media (prefers-reduced-motion:reduce) { .product,.plus svg { transition:none; } }
 @media print { .dock,.top,.section-nav,button,form { display:none!important; } body { background:white; } .panel { box-shadow:none; break-inside:avoid; } .store { padding:0; } }
-.demo-notice { margin:0 0 14px; padding:7px 10px; border:1px dashed #b8cdd3; border-radius:12px; background:#fffefaD9; font-size:.78rem; }
 
 .history-date { display:block; font-size:.75rem; color:var(--muted); margin-top:5px; }
 

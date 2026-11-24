@@ -33,35 +33,15 @@ class StorefrontTest extends TestCase
         $this->assertAuthenticated();
         $this->assertDatabaseHas('users', ['email' => 'reseller@example.test']);
     }
-    public function test_demo_otp_requires_key_and_session_and_expires_when_disabled(): void
+    public function test_demo_login_is_removed_and_legacy_demo_codes_cannot_authenticate(): void
     {
-        $owner = \App\Models\User::factory()->unverified()->create();
-        $owner->forceFill(['role' => 'owner', 'approval' => 'approved'])->save();
-        $this->app->instance('env', 'local');
-        config(['app.demo_otp_key' => 'test-demo-key']);
-
-        \Illuminate\Support\Facades\Route::middleware(['web', 'guest'])->group(function () {
-            \Illuminate\Support\Facades\Route::get('/masuk/demo', [\App\Http\Controllers\EmailLoginController::class, 'showDemo'])->name('otp.demo');
-            \Illuminate\Support\Facades\Route::post('/masuk/demo', [\App\Http\Controllers\EmailLoginController::class, 'issueDemo'])->name('otp.demo.issue');
-        });
-        app('router')->getRoutes()->refreshNameLookups();
-
-        $token = 'demo-test-csrf';
-        $this->withSession(['_token' => $token])->from('/masuk/demo')
-            ->post('/masuk/demo', ['_token' => $token, 'demo_key' => 'wrong-key'])
-            ->assertSessionHasErrors('demo_key')->assertSessionMissing('otp');
-        $this->post('/masuk/demo', ['_token' => $token, 'demo_key' => 'test-demo-key'])
-            ->assertRedirect('/masuk/demo')->assertSessionHas('demo_code');
-
-        $code = session('demo_code');
-        $this->post('/masuk/verifikasi', ['_token' => $token, 'code' => $code])
-            ->assertRedirect('/toko')->assertSessionMissing('otp');
-        $this->assertAuthenticatedAs($owner);
-        $this->assertNull($owner->fresh()->email_verified_at);
-
-        config(['app.demo_otp_key' => null]);
-        $this->get('/toko')->assertRedirect('/masuk');
+        $this->get('/masuk/demo')->assertNotFound();
+        $this->post('/masuk/demo', ['demo_key'=>'legacy'])->assertNotFound();
+        $this->withSession(['otp'=>[
+            'email'=>'owner@example.test','hash'=>Hash::make('123456'),'expires'=>now()->addMinutes(5)->timestamp,'attempts'=>0,'demo'=>true,
+        ]])->post('/masuk/verifikasi', ['code'=>'123456'])->assertSessionHasErrors('email')->assertSessionMissing('otp');
         $this->assertGuest();
+        $this->get('/masuk')->assertDontSee('OTP demo');
     }
 
     public function test_staff_login_and_navigation_lead_to_store_management(): void

@@ -15,7 +15,6 @@ return Application::configure(basePath: dirname(__DIR__))
         // The local ngrok agent terminates HTTPS before forwarding to Artisan.
         $middleware->trustProxies(at: ['127.0.0.1', '::1'], headers: Request::HEADER_X_FORWARDED_PROTO);
         $middleware->alias(['recent-owner' => \App\Http\Middleware\RecentOwner::class, 'account-write' => \App\Http\Middleware\EnsureAccountWritable::class, 'role-access' => \App\Http\Middleware\EnsureRoleAccess::class]);
-        $middleware->web(append: [\App\Http\Middleware\ExpireDemoLogin::class]);
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
         $middleware->preventRequestForgery(except: ['doku/notification']);
     })

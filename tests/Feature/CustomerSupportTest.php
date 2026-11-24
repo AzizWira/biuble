@@ -74,7 +74,11 @@ class CustomerSupportTest extends TestCase
         $this->actingAs($outsider)->get(route('support.show', $case))->assertForbidden();
         $this->actingAs($admin)->get(route('support.show', $case))->assertOk()
             ->assertSee('Unduh bukti login')->assertSee('Unduh bukti masalah')->assertSee('https://wa.me/6281234567890');
-        $this->get(route('support.file', $file))->assertOk()->assertDownload('bukti-'.$file->id.'.webp');
+        $storedBytes = Storage::disk('local')->get($file->path);
+        $download = $this->get(route('support.file', $file))->assertOk()->assertDownload('bukti-'.$file->id.'.jpg')->assertHeader('Content-Type', 'image/jpeg');
+        $this->assertSame(IMAGETYPE_JPEG, getimagesizefromstring($download->streamedContent())[2]);
+        $this->assertSame($storedBytes, Storage::disk('local')->get($file->path));
+        $this->get(route('support.file', ['file'=>$file, 'lihat'=>1]))->assertOk()->assertHeader('Content-Type', 'image/webp');
         $this->post(route('support.review', $case), ['status' => 'resolved', 'body' => 'Selesai'])->assertSessionHasErrors('status');
         $this->delete(route('support.file.delete', $file))->assertRedirect();
         $this->assertDatabaseMissing('support_files', ['id' => $file->id]);

@@ -22,7 +22,7 @@ class LocalAuditSeeder extends Seeder
         DB::transaction(function () {
             $accounts = [
                 'biubleemail01@gmail.com' => ['Reseller Demo', 'reseller'],
-                'btrihapsari@gmail.com' => ['Owner Demo', 'owner'],
+                'biubleemail@gmail.com' => ['Owner Demo', 'owner'],
                 'hrchyosazu@gmail.com' => ['Admin Demo', 'admin'],
             ];
             foreach ($accounts as $email => [$name, $role]) {

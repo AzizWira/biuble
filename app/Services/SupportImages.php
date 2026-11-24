@@ -10,6 +10,26 @@ class SupportImages
 {
     public const RULE = 'image|mimes:jpeg,png,webp|max:2048|dimensions:max_width=4096,max_height=4096';
 
+    public function jpeg(string $contents): string
+    {
+        abort_unless(function_exists('imagejpeg'), 503, 'Pemrosesan unduhan JPG belum tersedia.');
+        $image = @imagecreatefromstring($contents);
+        abort_unless($image !== false, 422, 'Gambar bukti tidak bisa dibaca.');
+        $canvas = imagecreatetruecolor(imagesx($image), imagesy($image));
+        imagefill($canvas, 0, 0, imagecolorallocate($canvas, 255, 255, 255));
+        imagecopy($canvas, $image, 0, 0, 0, 0, imagesx($image), imagesy($image));
+        ob_start();
+        try {
+            $ok = imagejpeg($canvas, null, 92);
+            $encoded = ob_get_contents();
+        } finally {
+            ob_end_clean();
+        }
+        abort_unless($ok && $encoded, 503, 'Bukti belum bisa dikonversi menjadi JPG. Coba lagi.');
+
+        return $encoded;
+    }
+
     public function store(UploadedFile $file): string
     {
         abort_unless(function_exists('imagewebp'), 503, 'Pemrosesan gambar belum tersedia.');

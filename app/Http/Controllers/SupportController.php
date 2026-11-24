@@ -227,7 +227,10 @@ class SupportController extends Controller
             return $disk->response($file->path, $name, ['Content-Type' => 'image/webp']);
         }
 
-        return $disk->download($file->path, $name, ['Content-Type' => 'image/webp']);
+        $jpeg = $this->images->jpeg($disk->get($file->path));
+        return response()->streamDownload(function () use ($jpeg) {
+            echo $jpeg;
+        }, 'bukti-'.$file->id.'.jpg', ['Content-Type' => 'image/jpeg', 'Cache-Control' => 'private, no-store']);
     }
 
     public function deleteFile(SupportFile $file)

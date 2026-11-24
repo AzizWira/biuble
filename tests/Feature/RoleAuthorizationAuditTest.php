@@ -124,7 +124,7 @@ class RoleAuthorizationAuditTest extends TestCase
     public function test_expired_otp_and_five_wrong_attempts_cannot_authenticate(): void
     {
         $this->seedDemo();
-        $challenge = ['email'=>'btrihapsari@gmail.com','hash'=>Hash::make('123456'),'expires'=>now()->subSecond()->timestamp,'attempts'=>0];
+        $challenge = ['email'=>'biubleemail@gmail.com','hash'=>Hash::make('123456'),'expires'=>now()->subSecond()->timestamp,'attempts'=>0];
         $this->withSession(['otp'=>$challenge])->post(route('otp.verify'), ['code'=>'123456'])->assertSessionHasErrors();
         $this->assertGuest();
         $challenge['expires'] = now()->addMinutes(5)->timestamp;
@@ -138,7 +138,7 @@ class RoleAuthorizationAuditTest extends TestCase
     {
         $this->seedDemo();
         config(['services.google.client_id'=>'test-client','services.google.client_secret'=>'test-secret']);
-        $identity = (new \Laravel\Socialite\Two\User())->map(['id'=>'untrusted-google-id','email'=>'btrihapsari@gmail.com','name'=>'Not verified']);
+        $identity = (new \Laravel\Socialite\Two\User())->map(['id'=>'untrusted-google-id','email'=>'biubleemail@gmail.com','name'=>'Not verified']);
         $identity->setRaw(['email_verified'=>false]);
         $provider = \Mockery::mock(\Laravel\Socialite\Contracts\Provider::class);
         $provider->shouldReceive('user')->once()->andReturn($identity);

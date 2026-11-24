@@ -30,7 +30,7 @@ class DemoScenarioSeederTest extends TestCase
         Http::preventStrayRequests();
         Mail::fake();
         $this->seed(DemoScenarioSeeder::class);
-        $owner = User::where('email', 'btrihapsari@gmail.com')->sole();
+        $owner = User::where('email', 'biubleemail@gmail.com')->sole();
         $admin = User::where('email', 'hrchyosazu@gmail.com')->sole();
         $buyer = User::where('email', 'biubleemail01@gmail.com')->sole();
         $this->assertSame('owner', $owner->role);

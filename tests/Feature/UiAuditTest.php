@@ -60,7 +60,7 @@ class UiAuditTest extends TestCase
         $this->snapshot('cart-filled', $this->get('/keranjang')->assertOk()->getContent());
         $this->get('/toko')->assertForbidden();
 
-        foreach (['owner'=>'btrihapsari@gmail.com', 'admin'=>'hrchyosazu@gmail.com'] as $role=>$email) {
+        foreach (['owner'=>'biubleemail@gmail.com', 'admin'=>'hrchyosazu@gmail.com'] as $role=>$email) {
             $user=User::where('email',$email)->firstOrFail();
             $this->assertSame($role,$user->role);
             $this->actingAs($user);
@@ -86,7 +86,7 @@ class UiAuditTest extends TestCase
     {
         app()->setLocale('id');
         $this->seed(LocalAuditSeeder::class);
-        $owner=User::where('email','btrihapsari@gmail.com')->firstOrFail();
+        $owner=User::where('email','biubleemail@gmail.com')->firstOrFail();
         $buyer=User::where('email','biubleemail01@gmail.com')->firstOrFail();
         DB::table('store_audits')->insert([
             'actor_id'=>$owner->id,'action'=>'reseller_approved','subject'=>(string)$buyer->id,'created_at'=>now(),

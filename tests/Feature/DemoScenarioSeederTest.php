@@ -31,7 +31,7 @@ class DemoScenarioSeederTest extends TestCase
         Mail::fake();
         $this->seed(DemoScenarioSeeder::class);
         $owner = User::where('email', 'biubleemail@gmail.com')->sole();
-        $admin = User::where('email', 'hrchyosazu@gmail.com')->sole();
+        $admin = User::where('email', 'hrchyosanzu@gmail.com')->sole();
         $buyer = User::where('email', 'biubleemail01@gmail.com')->sole();
         $this->assertSame('owner', $owner->role);
         $this->assertSame('admin', $admin->role);
@@ -91,7 +91,7 @@ class DemoScenarioSeederTest extends TestCase
         $response = $this->get(route('staff', ['bagian' => 'aktivitas']))->assertOk();
         $this->assertSame($badges['aktivitas'], substr_count($response->getContent(), 'data-attention="unread"'));
         $this->get(route('staff', ['bagian' => 'aktivitas']))->assertOk()->assertDontSee('data-attention="unread"', false);
-        $admin = User::where('email', 'hrchyosazu@gmail.com')->sole();
+        $admin = User::where('email', 'hrchyosanzu@gmail.com')->sole();
         $adminBadges = NavigationBadges::for($admin);
         foreach (['pesanan', 'topup'] as $section) {
             $response = $this->actingAs($admin)->get(route('staff', ['bagian' => $section]))->assertOk();

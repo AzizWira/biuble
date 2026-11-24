@@ -68,7 +68,7 @@ class DemoScenarioSeeder extends Seeder
             Auth::forgetGuards();
         }
         $this->command?->info('Skenario demo lengkap siap. Semua saldo, bukti gambar, akun layanan, dan transaksi DEMO adalah simulasi.');
-        $this->command?->info('Owner: biubleemail@gmail.com | Admin: hrchyosazu@gmail.com | Reseller: biubleemail01@gmail.com');
+        $this->command?->info('Owner: biubleemail@gmail.com | Admin: hrchyosanzu@gmail.com | Reseller: biubleemail01@gmail.com');
     }
 
     private function account(string $email, string $name, string $role, string $phone, array $extra = []): User
@@ -83,7 +83,7 @@ class DemoScenarioSeeder extends Seeder
     private function accounts(): void
     {
         $this->owner = $this->account('biubleemail@gmail.com', 'Owner Demo', 'owner', '080000001001');
-        $this->admin = $this->account('hrchyosazu@gmail.com', 'Admin Demo', 'admin', '080000001002');
+        $this->admin = $this->account('hrchyosanzu@gmail.com', 'Admin Demo', 'admin', '080000001002');
         $this->buyer = $this->account('biubleemail01@gmail.com', 'Reseller Demo', 'reseller', '080000001003');
         $this->account('admin-kedua@example.test', 'DEMO Admin Kedua', 'admin', '080000001004');
         $this->account('admin-nonaktif@example.test', 'DEMO Admin Nonaktif', 'admin', '080000001005', ['account_status' => 'inactive', 'account_status_reason' => 'Contoh admin hanya dapat melihat data.']);

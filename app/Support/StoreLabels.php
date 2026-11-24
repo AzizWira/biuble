@@ -130,6 +130,7 @@ class StoreLabels
         return [
             'order_payment_changed' => 'Metode pembayaran pesanan diubah', 'order_cancelled' => 'Pesanan belum dibayar dibatalkan',
             'owner_email_changed' => 'Email owner diperbarui',
+            'account_email_changed' => 'Email akun diperbarui',
             'catalog_removed' => 'Data katalog atau stok dihapus', 'announcement_save' => 'Pengumuman disimpan',
             'announcement_remove' => 'Pengumuman dihapus', 'promotion_save' => 'Diskon disimpan', 'promotion_remove' => 'Diskon dihapus',
             'account_status_changed'=>'Status akun diperbarui', 'account_role_changed'=>'Role akun diubah',

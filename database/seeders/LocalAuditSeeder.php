@@ -23,7 +23,7 @@ class LocalAuditSeeder extends Seeder
             $accounts = [
                 'biubleemail01@gmail.com' => ['Reseller Demo', 'reseller'],
                 'biubleemail@gmail.com' => ['Owner Demo', 'owner'],
-                'hrchyosazu@gmail.com' => ['Admin Demo', 'admin'],
+                'hrchyosanzu@gmail.com' => ['Admin Demo', 'admin'],
             ];
             foreach ($accounts as $email => [$name, $role]) {
                 User::unguarded(fn () => User::firstOrCreate(['email' => $email], [

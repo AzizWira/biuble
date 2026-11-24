@@ -17,7 +17,7 @@ class AccountRestrictionTest extends TestCase
     {
         $this->seed(LocalAuditSeeder::class);
         foreach (['suspended','inactive'] as $status) {
-            foreach (['reseller'=>'biubleemail01@gmail.com','admin'=>'hrchyosazu@gmail.com'] as $role=>$email) {
+            foreach (['reseller'=>'biubleemail01@gmail.com','admin'=>'hrchyosanzu@gmail.com'] as $role=>$email) {
                 $user=User::where('email',$email)->firstOrFail();
                 $user->forceFill(['account_status'=>$status,'account_status_reason'=>'Pembatasan untuk pengujian'])->save();
                 $this->withSession(['otp'=>['email'=>$email,'hash'=>Hash::make('123456'),
@@ -55,7 +55,7 @@ class AccountRestrictionTest extends TestCase
     {
         $this->seed(LocalAuditSeeder::class);
         $owner=User::where('role','owner')->firstOrFail();
-        $admin=User::where('email','hrchyosazu@gmail.com')->firstOrFail();
+        $admin=User::where('email','hrchyosanzu@gmail.com')->firstOrFail();
         $buyer=User::where('email','biubleemail01@gmail.com')->firstOrFail();
         $url='/toko/akun/'.$buyer->id.'/status';
         $this->actingAs($admin)->post($url,['account_status'=>'suspended'])->assertForbidden();

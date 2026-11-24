@@ -20,7 +20,7 @@ class RoleAuthorizationAuditTest extends TestCase
         Http::preventStrayRequests();
         Mail::fake();
         $this->seed(DemoScenarioSeeder::class);
-        return [User::where('role', 'owner')->sole(), User::where('email', 'hrchyosazu@gmail.com')->sole(), User::where('email', 'biubleemail01@gmail.com')->sole()];
+        return [User::where('role', 'owner')->sole(), User::where('email', 'hrchyosanzu@gmail.com')->sole(), User::where('email', 'biubleemail01@gmail.com')->sole()];
     }
 
     public function test_forbidden_role_routes_reject_direct_requests_across_all_modules(): void
